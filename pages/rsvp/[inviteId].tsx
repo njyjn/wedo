@@ -33,7 +33,7 @@ const InvitePage: React.FC = (props: any) => {
         <title>WeDo | RSVP for {props.invite.inviteCode}</title>
       </Head>
       <Main>
-        <InviteCard inviteCard={props} />
+        <InviteCard inviteCard={props} showBack={false} />
       </Main>
     </>
   );
