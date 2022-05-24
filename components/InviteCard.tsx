@@ -10,9 +10,7 @@ import {
   Card,
   Form,
   ListGroup,
-  Toast,
-  ToastBody,
-  ToastContainer,
+  Modal,
 } from "react-bootstrap";
 import { printFormalName } from "../lib/utils";
 import { Faq } from "./Faq";
@@ -46,9 +44,17 @@ const InviteCard: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAttending, setIsAttending] = useState(null);
 
-  const [responseToastText, setResponseToastText] = useState(null);
+  const [hasError, setHasError] = useState(false);
 
   const hcaptchaRef = useRef(null);
+
+  const [responseModalText, setResponseModalText] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setHasError(false);
+  };
+  const handleShowModal = () => setShowModal(true);
 
   const [rsvpWindowClosed, setRsvpWindowClosed] = useState(false);
   useEffect(() => {
@@ -66,7 +72,7 @@ const InviteCard: React.FC<{
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [responseToastText]);
+  }, [responseModalText]);
 
   const submit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -88,41 +94,45 @@ const InviteCard: React.FC<{
       setIsSubmitting(false);
       return;
     }
-    let toastText: string;
+    let modalText: string;
     if (isAttending) {
       try {
         if (attendingGuestCount < 1) {
-          toastText =
+          modalText =
             'Please indicate which guests are attending. If not, select "Not Attending"';
-          // return false;
-        }
-        const attending = guests.map((g, i) => {
-          g.isAttending = attendingGuests[i];
-          return g;
-        });
-        const body = {
-          id: invite.id,
-          attendingGuests: attending,
-          recipientNotes: recipientNotes,
-          dietaryRequirements: dietaryRequirements,
-          attending: true,
-          captcha: captchaCode,
-        };
-        const response = await fetch("/api/rsvp", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (response.ok) {
-          toastText = "Thanks for your response. See you there!";
+          setHasError(true);
         } else {
-          toastText =
-            "We have received your response but something went wrong in the backend. Please let your host know directly. Thank you";
+          const attending = guests.map((g, i) => {
+            g.isAttending = attendingGuests[i];
+            return g;
+          });
+          const body = {
+            id: invite.id,
+            attendingGuests: attending,
+            recipientNotes: recipientNotes,
+            dietaryRequirements: dietaryRequirements,
+            attending: true,
+            captcha: captchaCode,
+          };
+          const response = await fetch("/api/rsvp", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (response.ok) {
+            modalText = "Thanks for your response. See you there!";
+            setHasError(false);
+          } else {
+            modalText =
+              "We have received your response but something went wrong in the backend. Please let your host know directly. Thank you";
+            setHasError(true);
+          }
         }
       } catch (error) {
         console.error(error);
-        toastText =
+        modalText =
           "Something went wrong, please contact your host for assistance";
+        setHasError(true);
       }
     } else {
       try {
@@ -144,44 +154,64 @@ const InviteCard: React.FC<{
           body: JSON.stringify(body),
         });
         if (response.ok) {
-          toastText =
+          modalText =
             "Thank you for letting us know. We'll catch up another time!";
+          setHasError(false);
         } else {
-          toastText =
+          modalText =
             "We have received your response but something went wrong in the backend. Please let your host know directly. Thank you";
+          setHasError(true);
         }
       } catch (error) {
         console.error(error);
-        toastText =
+        modalText =
           "Something went wrong, please contact your host for assistance";
+        setHasError(true);
       }
     }
-    setResponseToastText(toastText);
+    setResponseModalText(modalText);
+    handleShowModal();
     setIsSubmitting(false);
   };
 
   const back = () => {
     setIsSubmitting(true);
-    router.push("/");
+    router.reload();
   };
 
   const recipientTitle = printFormalName(guests);
 
   return (
     <div>
-      <ToastContainer className="p-3" position="top-center">
-        <Toast
-          onClose={() => setResponseToastText(null)}
-          animation
-          autohide
-          delay={10000}
-          show={responseToastText}
-        >
-          <ToastBody style={{ textAlign: "center" }}>
-            {responseToastText}
-          </ToastBody>
-        </Toast>
-      </ToastContainer>
+      <Modal
+        show={showModal}
+        onHide={handleCloseModal}
+        backdrop="static"
+        keyboard={false}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{hasError ? "Oops!" : "All set!"}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{responseModalText}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>Edit response</Button>
+          { hasError ? <></> :
+            <Button
+            variant="primary"
+            onClick={() => {
+              // showBack flag is set to False for /rsvp component
+              if (showBack) {
+                router.reload();
+              } else {
+                router.push("/");
+              }
+            }}>Go to homepage</Button>
+          }
+        </Modal.Footer>
+      </Modal>
       <Card>
         <Card.Header>
           Invite Code <code>{invite.inviteCode.toUpperCase()}</code>
@@ -329,7 +359,7 @@ const InviteCard: React.FC<{
                   variant="light"
                   type="button"
                   onClick={back}
-                  hidden={!showBack && isSubmitting}
+                  hidden={!showBack || isSubmitting}
                 >
                   Back
                 </Button>
