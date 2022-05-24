@@ -1,0 +1,129 @@
+html,
+body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.nav {
+  display: flex;
+  padding: 1rem;
+}
+
+.rsvp-layout {
+  display: block;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  min-height: 100%;
+}
+
+.faq-layout {
+  display: block;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  min-height: 100%;
+}
+
+#footer {
+  display: flex;
+  padding: 1rem;
+  justify-content: center;
+}
+
+#footer a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.title a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.title a:hover,
+.title a:focus,
+.title a:active {
+  text-decoration: underline;
+}
+
+.title {
+  margin: 0;
+  line-height: 1.15;
+  font-size: 4rem;
+}
+
+.title,
+.description {
+  text-align: center;
+}
+
+.description {
+  line-height: 1.5;
+  font-size: 1.5rem;
+}
+
+.code {
+  background: #fafafa;
+  border-radius: 5px;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
+    Bitstream Vera Sans Mono, Courier New, monospace;
+}
+
+.signature {
+  font-family: "Licorice", sans-serif;
+}
+
+.center {
+  text-align: -webkit-center;
+  text-align: -moz-center;
+}
+
+table.timetable {
+  width: 80vw;
+  background-color: #ffffff;
+  border-collapse: collapse;
+  border-width: 1px;
+  border-color: #7ea8f8;
+  border-style: solid;
+  color: #000000;
+  text-align: center;
+}
+
+table.timetable td,
+table.timetable th {
+  border-width: 1px;
+  border-color: #7ea8f8;
+  border-style: solid;
+  padding: 5px;
+}
+
+table.timetable thead {
+  background-color: #7ea8f8;
+}
+
+.map {
+  position: relative;
+  width: 90%;
+  height: 50vh;
+}
+
+#qrscanner {
+  width: 100%;
+}

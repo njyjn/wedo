@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Guest {
+  id                  Int      @id @default(autoincrement())
+  email               String?
+  phoneNumber         String?
+  firstName           String
+  lastName            String
+  isInviteRecipient   Boolean  @default(false)
+  vaccinated          Boolean?
+  negativePET         Boolean?
+  tableId             Int?
+  dietaryRequirements String?
+  inviteId            Int?
+  invite              Invite?   @relation(fields: [inviteId], references: [id])
+  table               Table?    @relation(fields: [tableId], references: [id])
+  isAttending         Boolean?
+  salutation          String?
+}
+
+model Invite {
+  eventId        Int
+  attending      Boolean?
+  respondedAt    DateTime?
+  recipientNotes String?
+  customText     String?
+  issuedAt       DateTime?
+  inviteCode     String?   @unique
+  id             Int       @id @default(autoincrement())
+  event          Event     @relation(fields: [eventId], references: [id])
+  guests         Guest[]
+  type           String    @default("live")
+  respondBy      DateTime?
+  relationship   String?
+}
+
+model Event {
+  id            Int       @id @default(autoincrement())
+  name          String?
+  description   String?
+  startTime     DateTime
+  endTime       DateTime?
+  doorsOpenTime DateTime?
+  seatedByTime  DateTime?
+  location      String
+  sublocation   String?
+  invite        Invite[]
+}
+
+model Table {
+  id     Int     @id @default(autoincrement())
+  maxPax Int?
+  isVip  Boolean @default(false)
+  guests Guest[]
+  name   String?
+}
+
+model Feature {
+  id   Int    @id @default(autoincrement())
+  name String
+  value String?
+}
