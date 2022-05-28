@@ -197,19 +197,26 @@ const InviteCard: React.FC<{
           <p>{responseModalText}</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>Edit response</Button>
-          { hasError ? <></> :
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Edit response
+          </Button>
+          {hasError ? (
+            <></>
+          ) : (
             <Button
-            variant="primary"
-            onClick={() => {
-              // showBack flag is set to False for /rsvp component
-              if (showBack) {
-                router.reload();
-              } else {
-                router.push("/");
-              }
-            }}>Go to homepage</Button>
-          }
+              variant="primary"
+              onClick={() => {
+                // showBack flag is set to False for /rsvp component
+                if (showBack) {
+                  router.reload();
+                } else {
+                  router.push("/");
+                }
+              }}
+            >
+              Go to homepage
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
       <Card>
