@@ -2,7 +2,7 @@ import { Guest, Invite, Table as GuestTable, Feature } from ".prisma/client";
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { GetServerSideProps } from "next";
 import React from "react";
-import { Button, Row, Table } from "react-bootstrap";
+import { Row, Table } from "react-bootstrap";
 import Main from "../../../components/Main";
 import {
   QuickAddGuest,
@@ -75,7 +75,10 @@ const GodGuests: React.FC = (props: any) => {
       <Main>
         <Row className="m-3">
           <h3>Guest Management</h3>
-          <p>Count: {guests.length}</p>
+          <p>
+            Attending/Count: {guests.filter((g) => g.isAttending).length}/
+            {guests.length}
+          </p>
           <QuickAddGuest />
           <QuickAssignTableInvite quickAdd={quickAddProps} />
           <QuickGenerateInvite quickAdd={quickAddProps} />
@@ -95,6 +98,12 @@ const GodGuests: React.FC = (props: any) => {
                 {sortedTables.map((t) => {
                   return (
                     <td key={t.id}>
+                      {
+                        guests.filter((g) => {
+                          return g.tableId === t.id && g.isAttending;
+                        }).length
+                      }
+                      /
                       {
                         guests.filter((g) => {
                           return g.tableId === t.id;
@@ -167,7 +176,7 @@ const GodGuests: React.FC = (props: any) => {
                     <td>{invite?.type}</td>
                     <td>
                       {g.isAttending == null
-                        ? "?"
+                        ? "Wait"
                         : g.isAttending === true
                         ? "Yes"
                         : "No"}

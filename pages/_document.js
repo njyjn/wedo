@@ -12,7 +12,7 @@ export default function Document() {
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Licorice&display=optional"
+          href="https://fonts.googleapis.com/css?family=Licorice"
         />
         <link rel="shortcut icon" href="/favicon.ico" />
       </Head>
