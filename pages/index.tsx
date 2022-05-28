@@ -69,7 +69,7 @@ export const getStaticProps: GetStaticProps = async () => {
       enableRsvpForm: enableRsvpForm,
       splashPhotos: splashPhotos,
     },
-    revalidate: 3600
+    revalidate: 3600,
   };
 };
 

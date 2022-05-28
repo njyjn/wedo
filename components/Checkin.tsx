@@ -13,43 +13,39 @@ const Checkin: React.FC = () => {
   const [error, setError] = useState(false);
   const [suggestions, setSuggestions] = useState(null);
 
-  useEffect(() => {
-    function onScanSuccess(decodedResult) {
-      let code;
-      try {
-        const url = new URL(decodedResult);
-        code = url.pathname.replace("/rsvp/", "");
-        setError(false);
-        setInviteCode(code);
-      } catch (e) {
-        setError(true);
-      }
-    }
-
-    function onScanFailure(error) {}
-
-    let html5QrcodeScanner = new Html5QrcodeScanner(
-      "qrscanner",
-      {
-        fps: 10,
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-      },
-      false
-    );
-
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    return () => {
-      setInviteCode("");
+  function onScanSuccess(decodedResult) {
+    let code;
+    try {
+      const url = new URL(decodedResult);
+      code = url.pathname.replace("/rsvp/", "");
       setError(false);
-      html5QrcodeScanner.clear();
-    };
-  }, []);
+      setInviteCode(code);
+    } catch (e) {
+      setError(true);
+    }
+  }
+
+  function onScanFailure(error) {}
+
+  useEffect(() => {
+    if (!checkinCard) {
+      let html5QrcodeScanner = new Html5QrcodeScanner(
+        "qrscanner",
+        {
+          fps: 10,
+          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+        },
+        false
+      );
+      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    }
+  }, [checkinCard]);
 
   const back = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setCheckinCard(null);
     setInviteCode("");
-    router.push("/checkin", undefined, { shallow: true });
+    setError(false);
   };
 
   const checkin = async (e: React.SyntheticEvent) => {

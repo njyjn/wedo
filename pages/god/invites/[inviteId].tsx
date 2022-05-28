@@ -133,8 +133,7 @@ const InviteRsvpPage: React.FC = (props: any) => {
               <a href={`https://wedo.sg/rsvp/${invite.inviteCode}`}>
                 https://wedo.sg/rsvp/{invite.inviteCode}
               </a>{" "}
-              by {moment(invite.respondBy).format("MMM Do YYYY")}, or reply to
-              this message with your response.
+              by {moment(invite.respondBy).format("MMM Do YYYY")}.
             </p>
             <p>Thank you and we hope to see you there!</p>
             <p>Regards, Justin Ng &amp; Alethea Sim</p>
