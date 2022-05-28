@@ -29,10 +29,10 @@ model Guest {
   tableId             Int?
   dietaryRequirements String?
   inviteId            Int?
-  invite              Invite?   @relation(fields: [inviteId], references: [id])
-  table               Table?    @relation(fields: [tableId], references: [id])
   isAttending         Boolean?
   salutation          String?
+  invite              Invite?  @relation(fields: [inviteId], references: [id])
+  table               Table?   @relation(fields: [tableId], references: [id])
 }
 
 model Invite {
@@ -44,11 +44,11 @@ model Invite {
   issuedAt       DateTime?
   inviteCode     String?   @unique
   id             Int       @id @default(autoincrement())
+  type           String    @default("live")
+  relationship   String?
+  respondBy      DateTime?
   event          Event     @relation(fields: [eventId], references: [id])
   guests         Guest[]
-  type           String    @default("live")
-  respondBy      DateTime?
-  relationship   String?
 }
 
 model Event {
@@ -58,8 +58,8 @@ model Event {
   startTime     DateTime
   endTime       DateTime?
   doorsOpenTime DateTime?
-  seatedByTime  DateTime?
   location      String
+  seatedByTime  DateTime?
   sublocation   String?
   invite        Invite[]
 }
@@ -68,12 +68,12 @@ model Table {
   id     Int     @id @default(autoincrement())
   maxPax Int?
   isVip  Boolean @default(false)
-  guests Guest[]
   name   String?
+  guests Guest[]
 }
 
 model Feature {
-  id   Int    @id @default(autoincrement())
-  name String
+  id    Int     @id @default(autoincrement())
+  name  String
   value String?
 }
