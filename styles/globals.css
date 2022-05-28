@@ -48,6 +48,7 @@ a {
   justify-content: center;
   align-items: center;
   flex-grow: 1;
+  text-decoration: none;
 }
 
 .title a {
