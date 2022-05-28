@@ -38,7 +38,11 @@ const Rsvp: React.FC<{ rsvpProps: RsvpProps }> = ({ rsvpProps }) => {
   const submit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    hcaptchaRef.current.execute();
+    try {
+      hcaptchaRef.current.execute();
+    } catch (e) {
+      setIsLoading(false);
+    }
   };
 
   const onHCaptchaChange = async (captchaCode) => {
