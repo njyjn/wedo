@@ -36,7 +36,7 @@ const InviteCard: React.FC<{
   const [dietaryRequirements, setDietaryRequirements] = useState("");
   const [recipientNotes, setRecipientNotes] = useState(invite.recipientNotes);
   const [attendingGuests, setAttendingGuests] = useState<boolean[]>(
-    guests.map((g) => g.isAttending)
+    guests.map((g) => g.isAttending || false)
   );
   const [attendingGuestCount, setAttendingGuestCount] = useState<number>(
     attendingGuests.filter((g) => g).length
@@ -352,7 +352,7 @@ const InviteCard: React.FC<{
               </Form.Group>
               <ButtonGroup className="d-grid gap-2">
                 <Button variant="success" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Please wait..." : "Submit"}
+                  {isSubmitting ? "Please wait..." : "Attending"}
                 </Button>
                 <Button
                   variant="danger"

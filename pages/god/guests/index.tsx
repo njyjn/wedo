@@ -67,6 +67,24 @@ const GodGuests: React.FC = (props: any) => {
     tables: tables,
     features: features,
   };
+  let maxTableSize = 0;
+  let csvData = tables
+      .sort((t1, t2) => t1.id - t2.id)
+      .map((t) => {
+        const guests: Guest[] = t['guests'];
+        if (guests.length > maxTableSize) {
+          maxTableSize = guests.length;
+        }
+        const tableName = (t.isVip ? 'VIP ' : '') + t.id;
+        return [
+          guests.length,
+          tableName,
+          ...guests
+            .filter((g) => g.isAttending)
+            .map((g) => [g.firstName, g.lastName].join(' '))
+        ]
+      });
+  csvData = [...Array(maxTableSize + 2)].map((_, i) => csvData.map(r => r[i]))
   return (
     <>
       <Head>
@@ -76,8 +94,9 @@ const GodGuests: React.FC = (props: any) => {
         <Row className="m-3">
           <h3>Guest Management</h3>
           <p>
-            Attending/Count: {guests.filter((g) => g.isAttending).length}/
-            {guests.length}
+            Attending/Count: {guests.filter((g) => g.isAttending).length}
+            /
+            {guests.filter((g) => g.isAttending !== false).length}
           </p>
           <QuickAddGuest />
           <QuickAssignTableInvite quickAdd={quickAddProps} />
@@ -117,21 +136,7 @@ const GodGuests: React.FC = (props: any) => {
             </tbody>
           </Table>
           <CSVLink
-            data={guests.map((g) => {
-              const invite: Invite = g["invite"];
-              return {
-                firstName: g.firstName,
-                lastName: g.lastName,
-                type: invite?.type || "none",
-                table: g.tableId,
-                attending:
-                  g.isAttending == null
-                    ? "?"
-                    : g.isAttending === true
-                    ? "Yes"
-                    : "No",
-              };
-            })}
+            data={csvData}
             filename={"justin-and-alethea-guests.csv"}
             className="btn btn-light mb-3 text-center"
             target="_blank"
@@ -145,7 +150,6 @@ const GodGuests: React.FC = (props: any) => {
                 <th>Phone Number</th>
                 <th>Table</th>
                 <th>Invite Code</th>
-                <th>Type</th>
                 <th>R/A</th>
               </tr>
             </thead>
@@ -173,7 +177,6 @@ const GodGuests: React.FC = (props: any) => {
                         <code>{invite?.inviteCode}</code>
                       </Link>
                     </td>
-                    <td>{invite?.type}</td>
                     <td>
                       {g.isAttending == null
                         ? "Wait"
