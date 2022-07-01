@@ -56,7 +56,7 @@ export const Faq: React.FC<{ hidden?: boolean }> = ({ hidden = false }) => {
           </table>
         </div>
         <p>
-          Both events are held at the William Pickering Ballroom on Level 3.
+          Both events are held at the William Pickering Ballroom on Level 2.
         </p>
         <p>F&amp;B will not be served during the solemnization ceremony.</p>
         <b>What is the dress code?</b>
