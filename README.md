@@ -1,6 +1,6 @@
 # WeDo
 
-A wedding invite management system on Next.js and hosted on Vercel. You can try a live demo [here](https://wedo.sg) with invite code `TEST`.
+A wedding invite management system on Next.js and hosted on Vercel. You can try a live demo [here](https://demo.wedo.sg) with invite code `5555`.
 
 ## Setup
 

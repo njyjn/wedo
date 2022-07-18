@@ -38,6 +38,13 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
 const GodInvites: React.FC = (props: any) => {
   const invites: Invite[] & { guests: Guest[] } = props.invites;
+  const sortedInvites: Invite[] = invites.sort((iA, iB) => {
+    if (iA.respondedAt < iB.respondedAt) {
+      1
+    } else if (iA.respondedAt > iB.respondedAt) {
+      return -1;
+    } else return 0;
+  })
   const guestsAttendingCount = props.guestsAttendingCount;
   return (
     <>
@@ -82,7 +89,7 @@ const GodInvites: React.FC = (props: any) => {
                   }
                 }
                 const respondedAtFormatted = i.respondedAt
-                  ? moment(i.respondedAt).format()
+                  ? moment(i.respondedAt).format("MM/DD/YYYY H:MM:SS")
                   : "";
                 return (
                   <tr key={i.id}>
