@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -33,6 +34,8 @@ model Guest {
   salutation          String?
   invite              Invite?  @relation(fields: [inviteId], references: [id])
   table               Table?   @relation(fields: [tableId], references: [id])
+  isChild             Boolean  @default(false)
+  isCorsageRecipient  Boolean  @default(false)
 }
 
 model Invite {
