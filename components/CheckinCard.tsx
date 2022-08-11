@@ -18,16 +18,16 @@ const CheckinCard: React.FC<{ checkinCard: CheckinCardProps }> = ({
     <Card className="text-center">
       <Card.Body>
         <Card.Title>
-          Welcome, {guests.find((g) => g.isInviteRecipient)?.lastName} family
+          Welcome!
         </Card.Title>
         <Card.Text>
           <p>Please find your table assignments below</p>
           <ListGroup className="pb-3">
-            {guests.map((g) => {
+            {guests.filter((g) => g.isAttending).map((g) => {
               return (
                 <ListGroupItem key={g.id}>
-                  {g.firstName} {g.lastName} (Table{" "}
-                  {g.tableId || "not assigned"})
+                  {g.salutation ? g.salutation + " " : ""}{g.firstName} {g.lastName} (Table{" "}
+                  {g.tableId || "not assigned"}) {g.isCorsageRecipient ? "🌺" : ""}
                 </ListGroupItem>
               );
             })}
