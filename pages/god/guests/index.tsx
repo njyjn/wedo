@@ -81,7 +81,7 @@ const GodGuests: React.FC = (props: any) => {
           tableName,
           ...guests
             .filter((g) => g.isAttending)
-            .map((g) => [g.firstName, g.lastName].join(' '))
+            .map((g) => [g.firstName, g.lastName, g.isChild ? '(C)' : null].join(' ').trim())
         ]
       });
   csvData = [...Array(maxTableSize + 2)].map((_, i) => csvData.map(r => r[i]))
@@ -167,7 +167,9 @@ const GodGuests: React.FC = (props: any) => {
                   >
                     <td>
                       {g.lastName}, {g.firstName}
+                      {g.isChild ? " 👶🏻" : ""}
                       {g.isInviteRecipient ? " 💌" : ""}
+                      {g.isCorsageRecipient ? " 🌺" : ""}
                       {g.salutation ? ` (${g.salutation})` : ""}
                     </td>
                     <td>{g.phoneNumber}</td>
