@@ -164,7 +164,12 @@ const GodGuests: React.FC = (props: any) => {
                     key={g.id}
                     style={{
                       backgroundColor: `${
-                        g.tableId && g.tableId % 2 === 0 ? "beige" : ""
+                        g.tableId &&
+                        (g.tableId > 3
+                          ? (g.tableId - 1) % 2 === 0
+                          : g.tableId % 2 === 0)
+                          ? "beige"
+                          : ""
                       }`,
                     }}
                   >
