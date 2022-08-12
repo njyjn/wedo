@@ -22,7 +22,9 @@ const CheckinCard: React.FC<{ checkinCard: CheckinCardProps }> = ({
   const [checkedInGuestCount, setCheckedInGuestCount] = useState<number>(
     checkedInGuests.filter((g) => g).length
   );
-  const [isCheckInSuccess, setIsCheckInSuccess] = useState(null);
+  const [isCheckInSuccess, setIsCheckInSuccess] = useState<boolean>(
+    checkedInGuestCount > 0 || null
+  );
   const [isSubmitting, setSubmitting] = useState(false);
 
   const checkin = async (e: React.SyntheticEvent) => {
@@ -102,8 +104,8 @@ const CheckinCard: React.FC<{ checkinCard: CheckinCardProps }> = ({
               ")"
             )}
           </Button>
-          <Card.Text color="danger" hidden={isCheckInSuccess !== false}>
-            Failed to check in!
+          <Card.Text hidden={isCheckInSuccess !== false}>
+            Failed to check in! Please manually record in Prisma
           </Card.Text>
         </Card.Text>
       </Card.Body>
