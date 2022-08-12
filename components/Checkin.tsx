@@ -127,13 +127,13 @@ const Checkin: React.FC = () => {
               <></>
             )}
           </p>
-          <Button variant="success" type="submit" disabled={isSubmitting}>
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <div className="spinner-border spinner-border-sm" role="status">
                 <span className="sr-only"></span>
               </div>
             ) : (
-              "Check In"
+              "Search"
             )}
           </Button>
           <p>
