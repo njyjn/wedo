@@ -40,11 +40,11 @@ const GodInvites: React.FC = (props: any) => {
   const invites: Invite[] & { guests: Guest[] } = props.invites;
   const sortedInvites: Invite[] = invites.sort((iA, iB) => {
     if (iA.respondedAt < iB.respondedAt) {
-      1
+      1;
     } else if (iA.respondedAt > iB.respondedAt) {
       return -1;
     } else return 0;
-  })
+  });
   const guestsAttendingCount = props.guestsAttendingCount;
   return (
     <>
