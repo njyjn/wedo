@@ -157,8 +157,8 @@ const Checkin: React.FC = () => {
         {checkinCard && !checkinCard.notFound ? (
           <div className="d-grid gap-3">
             <CheckinCard checkinCard={checkinCard} />
-            <Button variant="outline-success" onClick={back} mx-auto>
-              Done
+            <Button variant="light" onClick={back} mx-auto>
+              Back
             </Button>
           </div>
         ) : (

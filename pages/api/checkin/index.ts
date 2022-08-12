@@ -87,6 +87,38 @@ export default withApiAuthRequired(async function handle(
       res.status(404);
     }
     return res.json(invite);
+  } else if (req.method == "POST") {
+    const { inviteCode, attendingGuests } = req.body;
+    if (!inviteCode || !attendingGuests || attendingGuests.length === 0) {
+      return res.status(400).json({
+        ok: false,
+      });
+    }
+    let invite = await prisma.invite.findFirst({
+      where: { inviteCode: inviteCode },
+      include: {
+        event: true,
+        guests: true,
+      },
+    });
+    if (!invite) {
+      return res.status(404).json({});
+    }
+    await Promise.all(
+      attendingGuests.map((g: number) => {
+        return prisma.guest.update({
+          where: {
+            id: g,
+          },
+          data: {
+            checkedIn: true,
+          },
+        });
+      })
+    );
+    return res.json({
+      ok: true,
+    });
   } else {
     return res.status(400).json({});
   }

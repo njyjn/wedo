@@ -69,22 +69,26 @@ const GodGuests: React.FC = (props: any) => {
   };
   let maxTableSize = 0;
   let csvData = tables
-      .sort((t1, t2) => t1.id - t2.id)
-      .map((t) => {
-        const guests: Guest[] = t['guests'];
-        if (guests.length > maxTableSize) {
-          maxTableSize = guests.length;
-        }
-        const tableName = (t.isVip ? 'VIP ' : '') + t.id;
-        return [
-          guests.length,
-          tableName,
-          ...guests
-            .filter((g) => g.isAttending)
-            .map((g) => [g.firstName, g.lastName, g.isChild ? '(C)' : null].join(' ').trim())
-        ]
-      });
-  csvData = [...Array(maxTableSize + 2)].map((_, i) => csvData.map(r => r[i]))
+    .sort((t1, t2) => t1.id - t2.id)
+    .map((t) => {
+      const guests: Guest[] = t["guests"];
+      if (guests.length > maxTableSize) {
+        maxTableSize = guests.length;
+      }
+      const tableName = (t.isVip ? "VIP " : "") + t.id;
+      return [
+        guests.length,
+        tableName,
+        ...guests
+          .filter((g) => g.isAttending)
+          .map((g) =>
+            [g.firstName, g.lastName, g.isChild ? "(C)" : null].join(" ").trim()
+          ),
+      ];
+    });
+  csvData = [...Array(maxTableSize + 2)].map((_, i) =>
+    csvData.map((r) => r[i])
+  );
   return (
     <>
       <Head>
@@ -94,8 +98,7 @@ const GodGuests: React.FC = (props: any) => {
         <Row className="m-3">
           <h3>Guest Management</h3>
           <p>
-            Attending/Count: {guests.filter((g) => g.isAttending).length}
-            /
+            Attending/Count: {guests.filter((g) => g.isAttending).length}/
             {guests.filter((g) => g.isAttending !== false).length}
           </p>
           <QuickAddGuest />
@@ -180,7 +183,9 @@ const GodGuests: React.FC = (props: any) => {
                       </Link>
                     </td>
                     <td>
-                      {g.isAttending == null
+                      {g.checkedIn
+                        ? "Seated"
+                        : g.isAttending == null
                         ? "Wait"
                         : g.isAttending === true
                         ? "Yes"

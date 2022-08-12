@@ -36,6 +36,7 @@ model Guest {
   table               Table?   @relation(fields: [tableId], references: [id])
   isChild             Boolean  @default(false)
   isCorsageRecipient  Boolean  @default(false)
+  checkedIn           Boolean  @default(false)
 }
 
 model Invite {
