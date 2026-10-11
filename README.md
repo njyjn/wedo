@@ -46,6 +46,9 @@ plain cover; you fill in your own in **God → Settings** (`/god/settings`):
 
 - **Event:** the wedding date and time (in the event time zone), venue and event name. Saving creates the event if
   none exists yet.
+- **After the wedding:** a message from the couple. By default the home page turns into a thank-you page showing
+  only that message the day after the wedding; switch `thankYouPage` off to keep the normal page (e.g. for a demo)
+  with a link to `/thank-you` instead. `/thank-you` is always reachable, so you can preview it.
 - **Look:** a theme preset (`classic`, `modern`, `garden` or `blush`, each with its own fonts and palette), an
   optional accent colour, and the tagline above your names on the cover.
 - **Text:** couple names, invitation message, RSVP notes and agreement, change policy, FAQ (Markdown, including

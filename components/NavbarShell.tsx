@@ -4,21 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Container, Navbar } from "react-bootstrap";
 
-const GUEST_LINKS = [
-  { href: "/#details", label: "Details" },
-  { href: "/#faq", label: "Q & A" },
-  { href: "/#rsvp", label: "RSVP" },
-];
-
 export default function NavbarShell({
   brand,
+  links,
   account,
 }: {
   brand: string;
+  links: { href: string; label: string }[];
   account: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAdminArea = /^\/(god|checkin)(\/|$)/.test(pathname);
+  // Section links make no sense in admin pages or on the thank-you page, which has no sections.
+  const showLinks =
+    links.length > 0 && !/^\/(god|checkin|thank-you)(\/|$)/.test(pathname);
   return (
     <Navbar expand="lg" className="site-nav" sticky="top">
       <Container fluid="xl">
@@ -27,9 +25,9 @@ export default function NavbarShell({
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="main-navbar" />
         <Navbar.Collapse id="main-navbar">
-          {!isAdminArea && (
+          {showLinks && (
             <ul className="navbar-nav site-links">
-              {GUEST_LINKS.map((l) => (
+              {links.map((l) => (
                 <li className="nav-item" key={l.href}>
                   <Link className="nav-link" href={l.href}>
                     {l.label}

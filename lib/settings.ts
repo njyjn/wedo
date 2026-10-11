@@ -6,6 +6,7 @@ import {
   DEFAULT_CHANGE_POLICY,
   DEFAULT_FAQ,
   DEFAULT_INVITE_MESSAGE,
+  DEFAULT_THANK_YOU,
 } from "@/lib/default-content";
 
 export type SettingKind = "text" | "markdown" | "image" | "images";
@@ -109,6 +110,12 @@ export const SETTINGS = {
     kind: "image",
     help: "1240 × 1748 px. Text and QR code are drawn on top.",
   },
+  thankYouMessage: {
+    label: "Message from the couple",
+    default: DEFAULT_THANK_YOU,
+    kind: "markdown",
+    help: "Shown on the thank-you page (/thank-you) and on invite pages after the wedding.",
+  },
   footerText: { label: "Footer text", default: "", kind: "text" },
   footerUrl: { label: "Footer link", default: "", kind: "text" },
 
@@ -117,6 +124,12 @@ export const SETTINGS = {
     label: "Enable RSVP form (1 = on)",
     default: "1",
     kind: "text",
+  },
+  thankYouPage: {
+    label: "Switch to the thank-you page after the wedding (1 = on)",
+    default: "1",
+    kind: "text",
+    help: "On: the day after the wedding, the home page shows only your message. Off (0): the normal page stays, with a link to the thank-you page (/thank-you, which you can also open any time to preview it).",
   },
   defaultInviteCodeLength: {
     label: "Invite code length (min 6)",
@@ -185,4 +198,12 @@ export function imageSetting(
 ): string | null {
   const url = settings[key].trim();
   return url && isSafeUrl(url) ? url : null;
+}
+
+/** Both partners' full names for signing messages, falling back to the short couple name. */
+export function coupleSignature(settings: Settings): string {
+  return (
+    [settings.groomName, settings.brideName].filter(Boolean).join(" & ") ||
+    settings.coupleName
+  );
 }

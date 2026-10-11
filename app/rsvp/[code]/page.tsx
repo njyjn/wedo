@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import Markdown from "@/components/Markdown";
 import RsvpForm from "@/components/RsvpForm";
+import ThankYouNote from "@/components/ThankYouNote";
 import {
   calendarDaysUntil,
   countdownLabel,
@@ -18,7 +19,8 @@ import { normalizeInviteCode } from "@/lib/invite-code";
 import { printFormalName } from "@/lib/names";
 import prisma from "@/lib/prisma";
 import { isRsvpClosed, rsvpClosesAt } from "@/lib/rsvp";
-import { getSettings, splashPhotoList } from "@/lib/settings";
+import { coupleSignature, getSettings, splashPhotoList } from "@/lib/settings";
+import { thankYouView } from "@/lib/thank-you";
 
 // Only what the guest needs to see. Never select phone numbers, emails or table assignments here:
 // anyone holding (or guessing) the invite code can load this page.
@@ -80,9 +82,12 @@ export default async function InvitePage({
   const respondBy = invite.respondBy
     ? formatCalendarDate(invite.respondBy, tz)
     : formatDateLong(event.startTime, tz);
-  const signature =
-    [settings.groomName, settings.brideName].filter(Boolean).join(" & ") ||
-    settings.coupleName;
+  const signature = coupleSignature(settings);
+  const showNote =
+    thankYouView(
+      settings.thankYouPage,
+      calendarDaysUntil(event.startTime, tz),
+    ) !== null;
 
   return (
     <>
@@ -97,6 +102,12 @@ export default async function InvitePage({
 
       <section className="section">
         <div className="section-inner section-narrow">
+          {showNote && (
+            <ThankYouNote
+              message={settings.thankYouMessage}
+              signature={signature}
+            />
+          )}
           <article className="paper invitation">
             <p className="invitation-greeting">
               Dearest {printFormalName(guests)},

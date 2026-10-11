@@ -1,12 +1,32 @@
 import Link from "next/link";
 import { getAdminStatus } from "@/lib/auth";
 import NavbarShell from "@/components/NavbarShell";
+import type { ThankYouView } from "@/lib/thank-you";
 
-export default async function Header({ coupleName }: { coupleName: string }) {
+const SECTION_LINKS = [
+  { href: "/#details", label: "Details" },
+  { href: "/#faq", label: "Q & A" },
+  { href: "/#rsvp", label: "RSVP" },
+];
+
+export default async function Header({
+  coupleName,
+  thankYou,
+}: {
+  coupleName: string;
+  thankYou: ThankYouView;
+}) {
   const { user, isAdmin } = await getAdminStatus();
   return (
     <NavbarShell
       brand={coupleName}
+      links={
+        thankYou === "page"
+          ? []
+          : thankYou === "link"
+            ? [...SECTION_LINKS, { href: "/thank-you", label: "Thank you" }]
+            : SECTION_LINKS
+      }
       account={
         <>
           {isAdmin && (

@@ -9,7 +9,10 @@ import {
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import Header from "@/components/Header";
+import { getDefaultEvent } from "@/lib/event";
+import { calendarDaysUntil } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
+import { thankYouView } from "@/lib/thank-you";
 import { resolveAccent, resolveTheme } from "@/lib/theme";
 
 // Every theme's fonts are declared, but browsers only download the ones the active theme uses.
@@ -47,6 +50,11 @@ export default async function RootLayout({
 }) {
   const settings = await getSettings();
   const accent = resolveAccent(settings.themeAccent);
+  const event = await getDefaultEvent(settings.defaultEventId);
+  const thankYou = thankYouView(
+    settings.thankYouPage,
+    event ? calendarDaysUntil(event.startTime, settings.timeZone) : null,
+  );
   return (
     <html
       lang="en"
@@ -59,7 +67,7 @@ export default async function RootLayout({
       }
     >
       <body>
-        <Header coupleName={settings.coupleName} />
+        <Header coupleName={settings.coupleName} thankYou={thankYou} />
         <main>{children}</main>
       </body>
     </html>

@@ -1,31 +1,32 @@
+import Link from "next/link";
 import EventDetails from "@/components/EventDetails";
 import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import RsvpLookupForm from "@/components/RsvpLookupForm";
+import ThankYouPage from "@/components/ThankYouPage";
 import {
   calendarDaysUntil,
   countdownLabel,
   formatDateLong,
 } from "@/lib/format";
-import prisma from "@/lib/prisma";
+import { getDefaultEvent } from "@/lib/event";
 import { getSettings, splashPhotoList } from "@/lib/settings";
+import { thankYouView } from "@/lib/thank-you";
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const settings = await getSettings();
-  const eventId = Number.parseInt(settings.defaultEventId, 10);
-  const event = Number.isSafeInteger(eventId)
-    ? await prisma.event.findUnique({
-        where: { id: eventId },
-        select: { startTime: true, location: true, sublocation: true },
-      })
-    : null;
+  const event = await getDefaultEvent(settings.defaultEventId);
   const enableRsvpForm = settings.enableRsvpForm === "1";
   const { rsvp } = await searchParams;
   const prefilledCode =
     typeof rsvp === "string" ? rsvp.toUpperCase() : undefined;
   const tz = settings.timeZone;
   const date = event ? formatDateLong(event.startTime, tz) : undefined;
+  const daysUntil = event ? calendarDaysUntil(event.startTime, tz) : null;
+  const thankYou = thankYouView(settings.thankYouPage, daysUntil);
+  if (thankYou === "page")
+    return <ThankYouPage settings={settings} event={event} />;
 
   return (
     <>
@@ -34,15 +35,23 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         eyebrow={settings.heroTagline}
         title={settings.coupleName}
         lines={event ? [date ?? "", event.location ?? ""] : []}
-        countdown={
-          event ? countdownLabel(calendarDaysUntil(event.startTime, tz)) : null
-        }
+        countdown={daysUntil === null ? null : countdownLabel(daysUntil)}
         action={
-          enableRsvpForm && (
-            <a className="btn btn-primary btn-lg hero-action" href="#rsvp">
-              RSVP
-            </a>
-          )
+          <>
+            {enableRsvpForm && (
+              <a className="btn btn-primary btn-lg hero-action" href="#rsvp">
+                RSVP
+              </a>
+            )}
+            {thankYou === "link" && (
+              <Link
+                className="btn btn-lg btn-ghost hero-action"
+                href="/thank-you"
+              >
+                A message from us
+              </Link>
+            )}
+          </>
         }
       />
 

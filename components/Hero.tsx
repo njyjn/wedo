@@ -63,7 +63,7 @@ export default function Hero({
           </p>
         ))}
         {countdown && <p className="hero-countdown">{countdown}</p>}
-        {action}
+        {action && <div className="hero-actions">{action}</div>}
       </div>
     </header>
   );

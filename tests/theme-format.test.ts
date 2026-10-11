@@ -6,6 +6,7 @@ import {
   toDateTimeLocalInput,
 } from "@/lib/format";
 import { submissionFromChoices } from "@/lib/rsvp";
+import { thankYouView } from "@/lib/thank-you";
 import { DEFAULT_THEME, resolveAccent, resolveTheme } from "@/lib/theme";
 
 describe("resolveTheme", () => {
@@ -126,5 +127,23 @@ describe("datetime-local inputs", () => {
     ]) {
       expect(fromDateTimeLocalInput(v, "UTC")).toBeNull();
     }
+  });
+});
+
+describe("thankYouView", () => {
+  it("does nothing until the wedding day has passed", () => {
+    expect(thankYouView("1", 3)).toBeNull();
+    expect(thankYouView("1", 0)).toBeNull();
+    expect(thankYouView("0", 0)).toBeNull();
+    expect(thankYouView("1", null)).toBeNull();
+  });
+
+  it("switches to the thank-you page afterwards by default", () => {
+    expect(thankYouView("1", -1)).toBe("page");
+    expect(thankYouView("", -1)).toBe("page");
+  });
+
+  it("keeps the normal page with a link when switched off", () => {
+    expect(thankYouView("0", -1)).toBe("link");
   });
 });
