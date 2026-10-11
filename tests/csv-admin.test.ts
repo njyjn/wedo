@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isAdminUser, parseAdminEmails } from "@/lib/admin";
 import { seatingChartCsv } from "@/lib/csv";
+import { parseDatabaseUrl } from "@/lib/db-url";
 
 describe("admin allow-list", () => {
   const admins = parseAdminEmails(" Justin@Example.com, ,bride@example.com ");
@@ -102,5 +103,21 @@ describe("seatingChartCsv", () => {
       },
     ]);
     expect(csv.split("\r\n")[2]).toBe(`"'=HYPERLINK(1) x, y"`);
+  });
+});
+
+describe("parseDatabaseUrl", () => {
+  it("splits ?schema= out of the connection string", () => {
+    expect(
+      parseDatabaseUrl("postgresql://u:p@host/db?sslmode=require&schema=wedo"),
+    ).toEqual({
+      connectionString: "postgresql://u:p@host/db?sslmode=require",
+      schema: "wedo",
+    });
+    expect(parseDatabaseUrl("postgresql://u:p@host/db")).toEqual({
+      connectionString: "postgresql://u:p@host/db",
+      schema: undefined,
+    });
+    expect(parseDatabaseUrl(undefined)).toEqual({});
   });
 });
