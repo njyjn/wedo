@@ -6,6 +6,9 @@ A wedding invite, RSVP and check-in app built on Next.js (App Router), Prisma an
 - **Admins** ("God" mode) manage guests, tables and invites, generate printable invite cards, export a seating
   chart, and check guests in at the door by code, name or QR scan.
 
+`/about` is a product page describing the app, with mockups of each screen. Set **Demo invite code** in
+`/god/settings` to a fictional invite and the page links to it, and its sample card's QR code opens it.
+
 ## Stack
 
 Next.js 16 (App Router, Server Components, Server Actions) · React 19 · Prisma 7 (`pg` driver adapter) ·
@@ -97,3 +100,7 @@ environment variables.
 4. Splash photos no longer come from listing an S3 bucket via Cognito (`S3_COGNITO_IDENTITY_POOL_ID` is unused).
    Put the photo URLs in the `splashPhotos` setting instead.
 5. Use Node.js 22 or newer.
+
+## Licence
+
+[MIT](LICENSE) © WuCoLaBo

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import InviteImage from "@/components/admin/InviteImage";
@@ -9,17 +8,9 @@ import { normalizeInviteCode } from "@/lib/invite-code";
 import { printFormalName } from "@/lib/names";
 import prisma from "@/lib/prisma";
 import { getSettings, imageSetting } from "@/lib/settings";
+import { siteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = { title: "GOD | Invite" };
-
-async function siteUrl(): Promise<string> {
-  if (process.env.APP_BASE_URL)
-    return process.env.APP_BASE_URL.replace(/\/$/, "");
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  return `${proto}://${host}`;
-}
 
 export default async function InviteDetailPage({
   params,

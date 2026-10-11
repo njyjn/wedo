@@ -14,9 +14,10 @@ export default function NavbarShell({
   account: React.ReactNode;
 }) {
   const pathname = usePathname();
-  // Section links make no sense in admin pages or on the thank-you page, which has no sections.
+  // Section links make no sense in admin pages, or on the thank-you and about pages, which have no sections.
   const showLinks =
-    links.length > 0 && !/^\/(god|checkin|thank-you)(\/|$)/.test(pathname);
+    links.length > 0 &&
+    !/^\/(god|checkin|thank-you|about)(\/|$)/.test(pathname);
   return (
     <Navbar expand="lg" className="site-nav" sticky="top">
       <Container fluid="xl">
