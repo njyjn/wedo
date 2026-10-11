@@ -4,3 +4,7 @@ coverage
 
 .next/
 .vscode/
+
+lib/generated/
+package-lock.json
+prisma/migrations/
