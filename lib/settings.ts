@@ -2,30 +2,114 @@ import "server-only";
 import { cache } from "react";
 import prisma from "@/lib/prisma";
 import { DEFAULT_TIME_ZONE } from "@/lib/format";
+import {
+  DEFAULT_CHANGE_POLICY,
+  DEFAULT_FAQ,
+  DEFAULT_INVITE_MESSAGE,
+} from "@/lib/default-content";
+
+export type SettingKind = "text" | "markdown" | "image" | "images";
+
+type SettingDef = {
+  label: string;
+  default: string;
+  kind: SettingKind;
+  help?: string;
+};
 
 /**
  * Admin-editable settings, stored as name/value rows in the Feature table.
+ *
+ * Everything specific to one couple's event (names, copy, contact details, photos) lives here
+ * rather than in the repository, so a fork starts from neutral defaults.
  * Never put secrets here: values are shown in /god/settings. Secrets belong in environment variables.
  */
 export const SETTINGS = {
-  coupleName: { label: "Couple name (short)", default: "WeDo" },
-  groomName: { label: "Groom's full name", default: "" },
-  brideName: { label: "Bride's full name", default: "" },
-  footerText: { label: "Footer text", default: "" },
-  defaultEventId: { label: "Default event ID", default: "1" },
+  // Who and when
+  coupleName: { label: "Couple name (short)", default: "WeDo", kind: "text" },
+  groomName: { label: "Partner 1 full name", default: "", kind: "text" },
+  brideName: { label: "Partner 2 full name", default: "", kind: "text" },
+  defaultEventId: { label: "Default event ID", default: "1", kind: "text" },
+  timeZone: {
+    label: "Event time zone (IANA)",
+    default: DEFAULT_TIME_ZONE,
+    kind: "text",
+  },
+
+  // Guest-facing content
+  splashPhotos: {
+    label: "Cover photos",
+    default: "",
+    kind: "images",
+    help: "One URL per line. Uploading adds a photo.",
+  },
+  inviteMessage: {
+    label: "Invitation message",
+    default: DEFAULT_INVITE_MESSAGE,
+    kind: "markdown",
+  },
+  inviteNotice: {
+    label: "Extra note under the RSVP deadline",
+    default: "",
+    kind: "markdown",
+    help: "Optional, e.g. attire or entry requirements.",
+  },
+  rsvpAgreement: {
+    label: "RSVP agreement",
+    default: "",
+    kind: "markdown",
+    help: "If set, guests must tick an Agree box with this text before submitting.",
+  },
+  rsvpChangePolicy: {
+    label: "RSVP change policy",
+    default: DEFAULT_CHANGE_POLICY,
+    kind: "markdown",
+  },
+  faq: {
+    label: "FAQ",
+    default: DEFAULT_FAQ,
+    kind: "markdown",
+    help: "Markdown, including tables and images. Put contact details here, not in the code.",
+  },
+  mapQuery: {
+    label: "Map location",
+    default: "",
+    kind: "text",
+    help: "Venue name or address for the FAQ map. Needs GOOGLE_MAPS_API_KEY.",
+  },
+  paymentQr: {
+    label: "Gift / payment QR code",
+    default: "",
+    kind: "image",
+    help: "Optional. Shown after check-in.",
+  },
+  inviteTemplate: {
+    label: "Printable invite card background",
+    default: "",
+    kind: "image",
+    help: "1240 × 1748 px. Text and QR code are drawn on top.",
+  },
+  footerText: { label: "Footer text", default: "", kind: "text" },
+  footerUrl: { label: "Footer link", default: "", kind: "text" },
+
+  // Behaviour
+  enableRsvpForm: {
+    label: "Enable RSVP form (1 = on)",
+    default: "1",
+    kind: "text",
+  },
   defaultInviteCodeLength: {
     label: "Invite code length (min 6)",
     default: "8",
+    kind: "text",
   },
-  enableRsvpForm: { label: "Enable RSVP form (1 = on)", default: "1" },
-  timeZone: { label: "Event time zone (IANA)", default: DEFAULT_TIME_ZONE },
-  splashPhotos: { label: "Splash photo URLs (one per line)", default: "" },
   slackNotificationChannel: {
     label: "Slack channel for RSVP notifications",
     default: "",
+    kind: "text",
   },
-  prismaClientUrl: { label: "Database console URL", default: "" },
-} as const;
+  prismaClientUrl: { label: "Database console URL", default: "", kind: "text" },
+} as const satisfies Record<string, SettingDef>;
 
 export type SettingKey = keyof typeof SETTINGS;
 export type Settings = Record<SettingKey, string>;
@@ -62,10 +146,23 @@ export const getSettings = cache(async (): Promise<Settings> => {
   return settings;
 });
 
+/** Only https URLs and same-site paths are rendered as images or links. */
+export function isSafeUrl(url: string): boolean {
+  return /^https:\/\//.test(url) || /^\/(?!\/)/.test(url);
+}
+
 export function splashPhotoList(settings: Settings): string[] {
   const photos = settings.splashPhotos
     .split(/\s+/)
     .map((p) => p.trim())
-    .filter((p) => /^https:\/\//.test(p) || p.startsWith("/"));
-  return photos.length > 0 ? photos : ["/main.png"];
+    .filter(isSafeUrl);
+  return photos.length > 0 ? photos : ["/placeholder-cover.svg"];
+}
+
+export function imageSetting(
+  settings: Settings,
+  key: "paymentQr" | "inviteTemplate",
+): string | null {
+  const url = settings[key].trim();
+  return url && isSafeUrl(url) ? url : null;
 }

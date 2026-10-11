@@ -144,3 +144,12 @@ table.timetable thead {
 #qrscanner {
   width: 100%;
 }
+
+.faq h1,
+.faq h2,
+.faq h3,
+.faq h4 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}

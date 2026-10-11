@@ -1,4 +1,4 @@
-import Faq from "@/content/faq";
+import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
 import RsvpLookupForm from "@/components/RsvpLookupForm";
 import Splash from "@/components/Splash";
@@ -51,9 +51,9 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
             </div>
           </div>
         </div>
-        <Faq />
+        <Faq settings={settings} />
       </div>
-      <Footer text={settings.footerText} />
+      <Footer text={settings.footerText} url={settings.footerUrl} />
     </>
   );
 }

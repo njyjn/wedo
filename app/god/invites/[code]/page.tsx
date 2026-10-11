@@ -8,7 +8,7 @@ import { formatCalendarDate, formatDateShort } from "@/lib/format";
 import { normalizeInviteCode } from "@/lib/invite-code";
 import { printFormalName } from "@/lib/names";
 import prisma from "@/lib/prisma";
-import { getSettings } from "@/lib/settings";
+import { getSettings, imageSetting } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "GOD | Invite" };
 
@@ -98,6 +98,7 @@ Regards, ${signature}`}
         <h5>Image</h5>
         <InviteImage
           inviteCode={invite.inviteCode}
+          templateUrl={imageSetting(settings, "inviteTemplate")}
           rsvpUrl={rsvpUrl}
           respondBy={
             invite.respondBy

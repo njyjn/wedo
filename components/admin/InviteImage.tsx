@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    // Uploaded templates live on another origin; CORS keeps the canvas exportable.
+    img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
@@ -15,11 +17,14 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 /** Renders the printable RSVP card: template background, addressee, code, deadline and QR link. */
 export default function InviteImage({
   inviteCode,
+  templateUrl,
   rsvpUrl,
   respondBy,
   defaultRecipientText,
 }: {
   inviteCode: string;
+  /** Background image; a plain card is drawn when none is configured. */
+  templateUrl: string | null;
   rsvpUrl: string;
   respondBy: string;
   defaultRecipientText: string;
@@ -27,7 +32,7 @@ export default function InviteImage({
   const canvas = useRef<HTMLCanvasElement>(null);
   const [recipientText, setRecipientText] = useState(defaultRecipientText);
   const [images, setImages] = useState<{
-    template: HTMLImageElement;
+    template: HTMLImageElement | null;
     qr: HTMLImageElement;
   } | null>(null);
   const [downloadUrl, setDownloadUrl] = useState("");
@@ -35,7 +40,10 @@ export default function InviteImage({
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      loadImage("/rsvp-template.png"),
+      // A template that fails to load (e.g. no CORS) falls back to the plain card.
+      templateUrl
+        ? loadImage(templateUrl).catch(() => null)
+        : Promise.resolve(null),
       QRCode.toDataURL(rsvpUrl).then(loadImage),
     ])
       .then(([template, qr]) => !cancelled && setImages({ template, qr }))
@@ -43,14 +51,22 @@ export default function InviteImage({
     return () => {
       cancelled = true;
     };
-  }, [rsvpUrl]);
+  }, [rsvpUrl, templateUrl]);
 
   useEffect(() => {
     const c = canvas.current;
     const ctx = c?.getContext("2d");
     if (!c || !ctx || !images) return;
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.drawImage(images.template, 0, 0, c.width, c.height);
+    if (images.template) {
+      ctx.drawImage(images.template, 0, 0, c.width, c.height);
+    } else {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.strokeStyle = "#b9a493";
+      ctx.lineWidth = 12;
+      ctx.strokeRect(40, 40, c.width - 80, c.height - 80);
+    }
     ctx.textAlign = "center";
     ctx.fillStyle = "#000";
     ctx.font = "45px Helvetica";

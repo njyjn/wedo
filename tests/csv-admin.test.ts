@@ -2,17 +2,15 @@ import { describe, expect, it } from "vitest";
 import { isAdminUser, parseAdminEmails } from "@/lib/admin";
 import { seatingChartCsv } from "@/lib/csv";
 import { parseDatabaseUrl } from "@/lib/db-url";
+import { isBlobConfigured } from "@/lib/blob";
 import { auth0Domain, isAuth0Configured } from "@/lib/auth-config";
 
 describe("admin allow-list", () => {
-  const admins = parseAdminEmails(" Justin@Example.com, ,bride@example.com ");
+  const admins = parseAdminEmails(" Alex@Example.com, ,bride@example.com ");
 
   it("matches verified emails case-insensitively", () => {
     expect(
-      isAdminUser(
-        { email: "justin@example.com", email_verified: true },
-        admins,
-      ),
+      isAdminUser({ email: "alex@example.com", email_verified: true }, admins),
     ).toBe(true);
     expect(isAdminUser({ email: "BRIDE@example.com" }, admins)).toBe(true);
   });
@@ -25,21 +23,18 @@ describe("admin allow-list", () => {
       ),
     ).toBe(false);
     expect(
-      isAdminUser(
-        { email: "justin@example.com", email_verified: false },
-        admins,
-      ),
+      isAdminUser({ email: "alex@example.com", email_verified: false }, admins),
     ).toBe(false);
     expect(isAdminUser(undefined, admins)).toBe(false);
   });
 
-  it("lets nobody in when the list is empty", () => {
+  it("lets any logged-in user in when no allow-list is set", () => {
+    const none = parseAdminEmails(undefined);
+    expect(isAdminUser({ email: "alex@example.com" }, none)).toBe(true);
     expect(
-      isAdminUser(
-        { email: "justin@example.com", email_verified: true },
-        parseAdminEmails(undefined),
-      ),
-    ).toBe(false);
+      isAdminUser({ email: "x@example.com", email_verified: false }, none),
+    ).toBe(true);
+    expect(isAdminUser(undefined, none)).toBe(false);
   });
 });
 
@@ -161,5 +156,15 @@ describe("Auth0 configuration", () => {
         AUTH0_SECRET: "",
       }),
     ).toBe(false);
+  });
+});
+
+describe("isBlobConfigured", () => {
+  it("accepts a connected store (OIDC) or a read-write token", () => {
+    expect(isBlobConfigured({ BLOB_STORE_ID: "store_abc" })).toBe(true);
+    expect(
+      isBlobConfigured({ BLOB_READ_WRITE_TOKEN: "vercel_blob_rw_x" }),
+    ).toBe(true);
+    expect(isBlobConfigured({})).toBe(false);
   });
 });

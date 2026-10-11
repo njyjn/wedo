@@ -1,15 +1,20 @@
-export default function Footer({ text }: { text: string }) {
+export default function Footer({ text, url }: { text: string; url?: string }) {
   if (!text) return null;
+  const safeUrl = url && /^https:\/\//.test(url) ? url : null;
   return (
     <nav id="footer">
-      <a
-        href="https://aletheon.co"
-        className="small text-muted"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {text}
-      </a>
+      {safeUrl ? (
+        <a
+          href={safeUrl}
+          className="small text-muted"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {text}
+        </a>
+      ) : (
+        <span className="small text-muted">{text}</span>
+      )}
     </nav>
   );
 }

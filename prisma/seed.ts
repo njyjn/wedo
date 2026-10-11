@@ -1,4 +1,5 @@
-// Seeds a demo event, settings, one table and one invite (code DEMO2026). Safe to re-run.
+// Seeds a fictional demo event, settings, one table and one invite (code DEMO2026). Safe to re-run.
+// Keep this fictional: the repository is public.
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../lib/generated/prisma/client";
@@ -12,10 +13,10 @@ const prisma = new PrismaClient({
 const settings: Record<string, string> = {
   defaultEventId: "1",
   defaultInviteCodeLength: "8",
-  coupleName: "Justin & Alethea",
-  groomName: "Justin Ng",
-  brideName: "Alethea Sim",
-  footerText: "Made with ❤️ in 🇸🇬 by Aletheon Corp",
+  coupleName: "Alex & Sam",
+  groomName: "Alex Tan",
+  brideName: "Sam Lee",
+  footerText: "Made with WeDo",
   enableRsvpForm: "1",
   timeZone: "Asia/Singapore",
   slackNotificationChannel: "",
@@ -32,8 +33,8 @@ async function main() {
       endTime: new Date(`${nextYear}-08-20T14:00:00.000Z`),
       doorsOpenTime: new Date(`${nextYear}-08-20T10:00:00.000Z`),
       seatedByTime: new Date(`${nextYear}-08-20T10:15:00.000Z`),
-      location: "PARKROYAL COLLECTION Pickering",
-      sublocation: "William Pickering Ballroom, Level 2",
+      location: "The Grand Hotel",
+      sublocation: "Ballroom, Level 2",
     },
   });
 

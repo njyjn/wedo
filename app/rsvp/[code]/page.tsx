@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import RsvpForm from "@/components/RsvpForm";
-import { DEFAULT_INVITE_MESSAGE, VaccinationNotice } from "@/content/rsvp";
-import Faq from "@/content/faq";
+import Faq from "@/components/Faq";
+import Markdown from "@/components/Markdown";
 import {
   formatCalendarDate,
   formatDateLong,
@@ -100,9 +100,14 @@ export default async function InvitePage({
           </p>
           <p>
             Please respond latest <b>by {respondBy}</b> so that we can finalize
-            our guestlist for submission to the venue. <VaccinationNotice />
+            our guestlist.
           </p>
-          <p>{invite.customText || DEFAULT_INVITE_MESSAGE}</p>
+          <Markdown>{settings.inviteNotice}</Markdown>
+          {invite.customText ? (
+            <p>{invite.customText}</p>
+          ) : (
+            <Markdown>{settings.inviteMessage}</Markdown>
+          )}
           <p>With gratitude,</p>
           <h3 className="signature">{signature}</h3>
         </div>
@@ -135,6 +140,12 @@ export default async function InvitePage({
             <RsvpForm
               code={invite.inviteCode}
               recipientNotes={invite.recipientNotes ?? ""}
+              agreement={
+                settings.rsvpAgreement.trim() ? (
+                  <Markdown>{settings.rsvpAgreement}</Markdown>
+                ) : null
+              }
+              changePolicy={<Markdown>{settings.rsvpChangePolicy}</Markdown>}
               guests={guests.map((g) => ({
                 id: g.id,
                 name: `${g.firstName} ${g.lastName}`,
@@ -144,7 +155,7 @@ export default async function InvitePage({
           )}
         </div>
       </div>
-      <Faq />
+      <Faq settings={settings} />
     </div>
   );
 }

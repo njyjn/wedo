@@ -5,54 +5,52 @@ import ActionMessage from "@/components/admin/ActionMessage";
 import SubmitButton from "@/components/admin/SubmitButton";
 import { useAdminForm } from "@/components/admin/useAdminForm";
 
-type Field = { key: string; label: string; value: string; multiline: boolean };
+export type SettingField = {
+  key: string;
+  label: string;
+  value: string;
+  kind: "text" | "markdown" | "image" | "images";
+  help?: string;
+};
 
-export default function SettingsForm({ fields }: { fields: Field[] }) {
+export default function SettingsForm({ fields }: { fields: SettingField[] }) {
   const { state, pending, formRef, onSubmit } = useAdminForm(saveSettings, {
     resetOnSuccess: false,
   });
   return (
     <form ref={formRef} onSubmit={onSubmit}>
-      <div className="table-responsive">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((f) => (
-              <tr key={f.key}>
-                <td>
-                  <label htmlFor={`setting-${f.key}`}>{f.label}</label>
-                  <div className="small text-muted">
-                    <code>{f.key}</code>
-                  </div>
-                </td>
-                <td>
-                  {f.multiline ? (
-                    <textarea
-                      id={`setting-${f.key}`}
-                      name={f.key}
-                      className="form-control"
-                      rows={3}
-                      defaultValue={f.value}
-                    />
-                  ) : (
-                    <input
-                      id={`setting-${f.key}`}
-                      name={f.key}
-                      className="form-control"
-                      defaultValue={f.value}
-                    />
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {fields.map((f) => {
+        const id = `setting-${f.key}`;
+        const rows = f.kind === "markdown" ? (f.key === "faq" ? 14 : 4) : 3;
+        return (
+          <div className="mb-3" key={f.key}>
+            <label className="form-label fw-semibold mb-0" htmlFor={id}>
+              {f.label}
+            </label>
+            <div className="small text-muted mb-1">
+              <code>{f.key}</code>
+              {f.kind === "markdown" && " · Markdown"}
+              {f.help && ` · ${f.help}`}
+            </div>
+            {f.kind === "markdown" || f.kind === "images" ? (
+              <textarea
+                id={id}
+                name={f.key}
+                className={`form-control${f.kind === "markdown" ? " font-monospace" : ""}`}
+                rows={rows}
+                defaultValue={f.value}
+              />
+            ) : (
+              <input
+                id={id}
+                name={f.key}
+                className="form-control"
+                defaultValue={f.value}
+              />
+            )}
+          </div>
+        );
+      })}
       <SubmitButton pending={pending}>Save</SubmitButton>
       <ActionMessage state={state} />
     </form>

@@ -8,10 +8,12 @@ export default function CheckinCard({
   inviteCode,
   guests,
   coupleName,
+  paymentQr,
 }: {
   inviteCode: string;
   guests: CheckinGuest[];
   coupleName: string;
+  paymentQr: string | null;
 }) {
   const attending = guests.filter((g) => g.isAttending);
   const [selected, setSelected] = useState<Set<number>>(
@@ -96,8 +98,18 @@ export default function CheckinCard({
       {success && (
         <div className="card-body">
           <p>We hope you have a splendid time!</p>
-          <p>Your blessings are greatly appreciated</p>
-          <Image src="/qr.png" alt="PayNow QR code" width={256} height={256} />
+          {paymentQr && (
+            <>
+              <p>Your blessings are greatly appreciated</p>
+              <Image
+                src={paymentQr}
+                alt="Gift QR code"
+                width={256}
+                height={256}
+                unoptimized
+              />
+            </>
+          )}
           <p>With gratitude and love,</p>
           <h1 className="signature">{coupleName}</h1>
         </div>
