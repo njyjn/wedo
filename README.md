@@ -6,6 +6,9 @@ A wedding invite, RSVP and check-in app built on Next.js (App Router), Prisma an
 - **Admins** ("God" mode) manage guests, tables and invites, generate printable invite cards, export a seating
   chart, and check guests in at the door by code, name or QR scan.
 
+`/about` is a product page describing the app, with mockups of each screen. Set **Demo invite code** in
+`/god/settings` to a fictional invite and the page links to it, and its sample card's QR code opens it.
+
 ## Stack
 
 Next.js 16 (App Router, Server Components, Server Actions) · React 19 · Prisma 7 (`pg` driver adapter) ·

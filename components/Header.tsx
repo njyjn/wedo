@@ -7,6 +7,11 @@ export default async function Header() {
   return (
     <NavbarShell>
       <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-3">
+        <li className="nav-item">
+          <Link className="nav-link" href="/about">
+            About
+          </Link>
+        </li>
         {isAdmin && (
           <li className="nav-item">
             <Link className="nav-link" href="/god">

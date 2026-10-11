@@ -109,6 +109,12 @@ export const SETTINGS = {
     kind: "text",
   },
   prismaClientUrl: { label: "Database console URL", default: "", kind: "text" },
+  demoInviteCode: {
+    label: "Demo invite code for /about",
+    default: "",
+    kind: "text",
+    help: "Optional. A fictional invite visitors can open from the product page.",
+  },
 } as const satisfies Record<string, SettingDef>;
 
 export type SettingKey = keyof typeof SETTINGS;
