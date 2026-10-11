@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import ImageSettings from "@/components/admin/ImageSettings";
 import SettingsForm from "@/components/admin/SettingsForm";
 import { requireAdmin } from "@/lib/auth";
+import { isBlobConfigured } from "@/lib/blob";
 import { getSettings, isSafeUrl, SETTING_KEYS, SETTINGS } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "GOD | Settings" };
@@ -38,9 +39,9 @@ export default async function SettingsPage() {
         </p>
         <h5 className="mt-3">Images</h5>
         <p className="text-muted small">
-          {process.env.BLOB_READ_WRITE_TOKEN
+          {isBlobConfigured()
             ? "Uploads are stored in Vercel Blob."
-            : "Uploads need a Vercel Blob store (BLOB_READ_WRITE_TOKEN). Without one, paste image URLs into the fields below."}
+            : "Uploads need a Vercel Blob store connected to the project. Without one, paste image URLs into the fields below."}
         </p>
         <ImageSettings
           fields={imageKeys.map((k) => {

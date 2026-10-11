@@ -35,6 +35,7 @@ See [`.env.example`](.env.example). The important ones:
 | `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`, `HCAPTCHA_SECRET`                                       | Required to submit RSVPs. `.env.example` has hCaptcha's always-pass test keys for local use                                         |
 | `SLACK_BOT_TOKEN`                                                                        | Optional. RSVP notifications go to the channel set in `/god/settings`                                                               |
 | `GOOGLE_MAPS_API_KEY`                                                                    | Optional. Map embed in the FAQ                                                                                                      |
+| `BLOB_STORE_ID` or `BLOB_READ_WRITE_TOKEN`                                               | Optional. Image uploads in settings via Vercel Blob. Connecting a store in Vercel sets `BLOB_STORE_ID`                              |
 
 Without the Auth0 variables the guest-facing pages still work and the admin pages are disabled.
 
@@ -47,7 +48,7 @@ placeholder cover image; you fill in your own in **God → Settings** (`/god/set
   tables and images), map location, footer.
 - **Images:** cover photos, an optional gift/payment QR code shown after check-in, and an optional printable invite
   card background (1240 × 1748 px). Uploads are stored in [Vercel Blob](https://vercel.com/docs/vercel-blob); connect
-  a Blob store to the project (this sets `BLOB_READ_WRITE_TOKEN`), or paste image URLs instead.
+  a public Blob store to the project (this sets `BLOB_STORE_ID`), or paste image URLs instead.
 
 All of this is stored in your database and Blob store, so forks of the repository never contain your photos, contact
 details or payment information. A test (`tests/repo-hygiene.test.ts`) fails if images other than the placeholders,

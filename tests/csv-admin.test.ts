@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isAdminUser, parseAdminEmails } from "@/lib/admin";
 import { seatingChartCsv } from "@/lib/csv";
 import { parseDatabaseUrl } from "@/lib/db-url";
+import { isBlobConfigured } from "@/lib/blob";
 import { auth0Domain, isAuth0Configured } from "@/lib/auth-config";
 
 describe("admin allow-list", () => {
@@ -155,5 +156,15 @@ describe("Auth0 configuration", () => {
         AUTH0_SECRET: "",
       }),
     ).toBe(false);
+  });
+});
+
+describe("isBlobConfigured", () => {
+  it("accepts a connected store (OIDC) or a read-write token", () => {
+    expect(isBlobConfigured({ BLOB_STORE_ID: "store_abc" })).toBe(true);
+    expect(
+      isBlobConfigured({ BLOB_READ_WRITE_TOKEN: "vercel_blob_rw_x" }),
+    ).toBe(true);
+    expect(isBlobConfigured({})).toBe(false);
   });
 });

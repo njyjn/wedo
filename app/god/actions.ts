@@ -4,6 +4,7 @@ import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { isBlobConfigured } from "@/lib/blob";
 import prisma from "@/lib/prisma";
 import {
   generateInviteCode,
@@ -297,11 +298,11 @@ export async function uploadSettingImage(
     return { ok: false, message: "Use a PNG, JPEG, WebP or GIF image." };
   if (file.size > MAX_IMAGE_BYTES)
     return { ok: false, message: "Images must be under 4 MB." };
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!isBlobConfigured()) {
     return {
       ok: false,
       message:
-        "Uploads need Vercel Blob (BLOB_READ_WRITE_TOKEN). You can paste an image URL under All settings instead.",
+        "Uploads need a Vercel Blob store connected to the project. You can paste an image URL under All settings instead.",
     };
   }
 
@@ -323,7 +324,9 @@ export async function uploadSettingImage(
       if (current && isOwnBlob(current)) await del(current).catch(() => {});
     }
   } catch (e) {
-    return fail(e, "Upload failed.");
+    // Admin-only message; Blob errors explain e.g. a private store or missing OIDC access.
+    const detail = e instanceof Error ? ` ${e.message.slice(0, 200)}` : "";
+    return fail(e, `Upload failed.${detail}`);
   }
   revalidatePath("/", "layout");
   return { ok: true, message: "Uploaded." };
@@ -345,8 +348,7 @@ export async function removeSettingImage(
       .filter((u) => u && u !== url)
       .join("\n");
     await setSetting(prisma, key.data, remaining);
-    if (isOwnBlob(url) && process.env.BLOB_READ_WRITE_TOKEN)
-      await del(url).catch(() => {});
+    if (isOwnBlob(url) && isBlobConfigured()) await del(url).catch(() => {});
   } catch (e) {
     return fail(e, "Could not remove image.");
   }
