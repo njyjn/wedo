@@ -65,6 +65,18 @@ export const SETTINGS = {
     kind: "images",
     help: "One URL per line. Uploading adds a photo.",
   },
+  galleryPhotos: {
+    label: "Gallery photos",
+    default: "",
+    kind: "images",
+    help: "Shown as a photo grid on the thank-you page. Pick your favourites; link the full album below. Large photos are resized before upload.",
+  },
+  albumUrl: {
+    label: "Full album link",
+    default: "",
+    kind: "text",
+    help: "Optional https link to the complete album (Google Photos, iCloud, your photographer), shown under the gallery.",
+  },
   inviteMessage: {
     label: "Invitation message",
     default: DEFAULT_INVITE_MESSAGE,
@@ -192,6 +204,20 @@ export function splashPhotoList(settings: Settings): string[] {
     .split(/\s+/)
     .map((p) => p.trim())
     .filter(isSafeUrl);
+}
+
+/** Photos for the thank-you page gallery. */
+export function galleryPhotoList(settings: Settings): string[] {
+  return settings.galleryPhotos
+    .split(/\s+/)
+    .map((p) => p.trim())
+    .filter(isSafeUrl);
+}
+
+/** The full-album link, if it is a plain https URL. */
+export function albumLink(settings: Settings): string | null {
+  const url = settings.albumUrl.trim();
+  return /^https:\/\//.test(url) ? url : null;
 }
 
 export function imageSetting(

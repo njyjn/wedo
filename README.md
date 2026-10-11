@@ -53,7 +53,7 @@ plain cover; you fill in your own in **God → Settings** (`/god/settings`):
   optional accent colour, and the tagline above your names on the cover.
 - **Text:** couple names, invitation message, RSVP notes and agreement, change policy, FAQ (Markdown, including
   tables and images), map location, footer.
-- **Images:** cover photos, an optional gift/payment QR code shown after check-in, and an optional printable invite
+- **Images:** cover photos, a photo gallery for the thank-you page (plus an optional link to your full album), an optional gift/payment QR code shown after check-in, and an optional printable invite
   card background (1240 × 1748 px). Uploads are stored in [Vercel Blob](https://vercel.com/docs/vercel-blob); connect
   a public Blob store to the project (this sets `BLOB_STORE_ID`), or paste image URLs instead.
 

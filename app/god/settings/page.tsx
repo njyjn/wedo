@@ -95,6 +95,7 @@ export default async function SettingsPage() {
               label: f.label,
               help: f.help,
               urls: f.value.split(/\s+/).filter(Boolean).filter(isSafeUrl),
+              multiple: f.kind === "images",
             };
           })}
         />
