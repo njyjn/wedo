@@ -523,12 +523,11 @@ export default async function AboutPage() {
             Built for one wedding, kept for anyone who wants it.
           </h2>
           <p>
-            WeDo was written in 2022 for its author’s wedding in Singapore,
-            where family ran the check-in desk with it on the day. In 2026 it
-            was rebuilt on Next.js 16, React 19 and Prisma 7, redesigned, and
-            made safe to fork. It is not a hosted service: there is no sign-up,
-            and nothing is sold. To use it, fork the repository and deploy your
-            own copy.
+            WeDo was written in 2022 for a wedding in Singapore, where family
+            ran the check-in desk with it on the day. In 2026 it was rebuilt on
+            Next.js 16, React 19 and Prisma 7, redesigned, and made safe to
+            fork. It is not a hosted service: there is no sign-up, and nothing
+            is sold. To use it, fork the repository and deploy your own copy.
           </p>
           <div className={styles.ctas}>
             <a
@@ -545,7 +544,7 @@ export default async function AboutPage() {
 
       <footer className={styles.footer}>
         <div className={styles.wrap}>
-          <span>WeDo · MIT licence</span>
+          <span>WeDo · © WuCoLaBo · MIT licence</span>
           <a href={SOURCE_URL} target="_blank" rel="noopener noreferrer">
             Source
           </a>

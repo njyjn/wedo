@@ -100,3 +100,7 @@ environment variables.
 4. Splash photos no longer come from listing an S3 bucket via Cognito (`S3_COGNITO_IDENTITY_POOL_ID` is unused).
    Put the photo URLs in the `splashPhotos` setting instead.
 5. Use Node.js 22 or newer.
+
+## Licence
+
+[MIT](LICENSE) © WuCoLaBo
