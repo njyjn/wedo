@@ -55,6 +55,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         }
       />
 
+      {event && <EventDetails event={event} settings={settings} />}
+
       <section id="rsvp" className="section">
         <div className="section-inner section-narrow text-center">
           {enableRsvpForm ? (
@@ -76,8 +78,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           )}
         </div>
       </section>
-
-      {event && <EventDetails event={event} settings={settings} />}
       <Faq settings={settings} />
       <Footer
         coupleName={settings.coupleName}

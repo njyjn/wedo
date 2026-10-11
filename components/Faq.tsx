@@ -4,7 +4,7 @@ import type { Settings } from "@/lib/settings";
 export default function Faq({ settings }: { settings: Settings }) {
   if (!settings.faq.trim()) return null;
   return (
-    <section id="faq" className="section section-alt">
+    <section id="faq" className="section">
       <div className="section-inner section-narrow">
         <p className="eyebrow">Good to know</p>
         <h2 className="section-title">Questions &amp; answers</h2>

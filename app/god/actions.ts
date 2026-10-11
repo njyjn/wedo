@@ -275,7 +275,16 @@ export async function saveSettings(
 ): Promise<ActionState> {
   await requireAdmin("/god/settings");
   const values = SETTING_KEYS.filter((k) => formData.has(k)).map(
-    (k) => [k, str(formData, k).trim()] as const,
+    (k) =>
+      [
+        k,
+        // A switch posts a hidden "0" plus "1" when checked.
+        SETTINGS[k].kind === "toggle"
+          ? formData.getAll(k).includes("1")
+            ? "1"
+            : "0"
+          : str(formData, k).trim(),
+      ] as const,
   );
 
   for (const [key, value] of values) {

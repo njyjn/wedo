@@ -5,8 +5,8 @@ import type { ThankYouView } from "@/lib/thank-you";
 
 const SECTION_LINKS = [
   { href: "/#details", label: "Details" },
-  { href: "/#faq", label: "Q & A" },
   { href: "/#rsvp", label: "RSVP" },
+  { href: "/#faq", label: "Q & A" },
 ];
 
 export default async function Header({

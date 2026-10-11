@@ -9,7 +9,8 @@ import {
   DEFAULT_THANK_YOU,
 } from "@/lib/default-content";
 
-export type SettingKind = "text" | "markdown" | "image" | "images";
+/** "toggle" settings are stored as "1" (on) or "0" (off) and edited with a switch. */
+export type SettingKind = "text" | "markdown" | "image" | "images" | "toggle";
 
 type SettingDef = {
   label: string;
@@ -121,15 +122,16 @@ export const SETTINGS = {
 
   // Behaviour
   enableRsvpForm: {
-    label: "Enable RSVP form (1 = on)",
+    label: "RSVP form",
     default: "1",
-    kind: "text",
+    kind: "toggle",
+    help: 'Off: the home page shows "Save the date" instead of the invite-code form.',
   },
   thankYouPage: {
-    label: "Switch to the thank-you page after the wedding (1 = on)",
+    label: "Switch to the thank-you page after the wedding",
     default: "1",
-    kind: "text",
-    help: "On: the day after the wedding, the home page shows only your message. Off (0): the normal page stays, with a link to the thank-you page (/thank-you, which you can also open any time to preview it).",
+    kind: "toggle",
+    help: "On: the day after the wedding, the home page shows only your message. Off: the normal page stays, with a link to the thank-you page (/thank-you, which you can also open any time to preview it).",
   },
   defaultInviteCodeLength: {
     label: "Invite code length (min 6)",

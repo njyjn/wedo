@@ -9,7 +9,7 @@ export type SettingField = {
   key: string;
   label: string;
   value: string;
-  kind: "text" | "markdown" | "image" | "images";
+  kind: "text" | "markdown" | "image" | "images" | "toggle";
   help?: string;
 };
 
@@ -22,6 +22,32 @@ export default function SettingsForm({ fields }: { fields: SettingField[] }) {
       {fields.map((f) => {
         const id = `setting-${f.key}`;
         const rows = f.kind === "markdown" ? (f.key === "faq" ? 14 : 4) : 3;
+        if (f.kind === "toggle") {
+          return (
+            <div className="mb-3" key={f.key}>
+              {/* Unchecked boxes aren't submitted, so the hidden "0" records "off". */}
+              <input type="hidden" name={f.key} value="0" />
+              <div className="form-check form-switch">
+                <input
+                  id={id}
+                  name={f.key}
+                  value="1"
+                  type="checkbox"
+                  role="switch"
+                  className="form-check-input"
+                  defaultChecked={f.value === "1"}
+                />
+                <label className="form-check-label fw-semibold" htmlFor={id}>
+                  {f.label}
+                </label>
+              </div>
+              <div className="small text-muted">
+                <code>{f.key}</code>
+                {f.help && ` · ${f.help}`}
+              </div>
+            </div>
+          );
+        }
         return (
           <div className="mb-3" key={f.key}>
             <label className="form-label fw-semibold mb-0" htmlFor={id}>

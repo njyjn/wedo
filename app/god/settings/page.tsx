@@ -6,7 +6,13 @@ import { requireAdmin } from "@/lib/auth";
 import { isBlobConfigured } from "@/lib/blob";
 import { toDateTimeLocalInput } from "@/lib/format";
 import prisma from "@/lib/prisma";
-import { getSettings, isSafeUrl, SETTING_KEYS, SETTINGS } from "@/lib/settings";
+import {
+  getSettings,
+  isSafeUrl,
+  SETTING_KEYS,
+  SETTINGS,
+  type SettingKind,
+} from "@/lib/settings";
 
 export const metadata: Metadata = { title: "GOD | Settings" };
 
@@ -28,7 +34,7 @@ export default async function SettingsPage() {
   const field = (key: (typeof SETTING_KEYS)[number]) => {
     const def: {
       label: string;
-      kind: "text" | "markdown" | "image" | "images";
+      kind: SettingKind;
       help?: string;
     } = SETTINGS[key];
     return {

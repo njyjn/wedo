@@ -433,7 +433,8 @@ p {
   padding: clamp(3.5rem, 9vw, 6.5rem) 1.25rem;
 }
 
-.section-alt {
+/* Alternate section backgrounds so consecutive sections stay visually separate on every page. */
+main > .section:nth-of-type(even) {
   background: var(--surface-alt);
 }
 

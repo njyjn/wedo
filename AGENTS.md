@@ -36,21 +36,21 @@ deployment's database before building**.
 
 ## Layout
 
-| Path                                                              | What                                                                                                           |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `app/page.tsx`, `app/rsvp/[code]/page.tsx`, `app/rsvp/actions.ts` | Public: home/lookup, invite page, RSVP Server Actions                                                          |
-| `app/god/**`, `app/god/actions.ts`                                | Admin pages and Server Actions (guests, invites, event, settings, image uploads)                               |
-| `app/checkin/**`                                                  | Admin check-in page and actions                                                                                |
-| `app/god/guests/export/route.ts`                                  | Seating-chart CSV route handler                                                                                |
-| `proxy.ts`                                                        | Auth0 middleware (mounts `/auth/*`), redirects logged-out users away from `/god`, `/checkin`                   |
-| `components/`                                                     | UI. Client components are marked `"use client"`; `components/admin/` is admin-only UI                          |
-| `lib/`                                                            | Server and pure helpers (see below)                                                                            |
-| `lib/settings.ts`                                                 | The settings registry: every admin-editable setting, its kind (`text`/`markdown`/`image`/`images`) and default |
-| `lib/theme.ts`, `app/globals.css`                                 | Theme presets (`data-theme` on `<html>`) and design tokens mapped onto Bootstrap's CSS variables               |
-| `lib/thank-you.ts`, `app/thank-you/page.tsx`                      | After the wedding: whether the home page becomes the thank-you page or links to `/thank-you`                   |
-| `lib/default-content.ts`                                          | Neutral placeholder copy shown until settings are filled in                                                    |
-| `prisma/schema.prisma`, `prisma/migrations/`, `prisma.config.ts`  | Schema, SQL migrations, Prisma 7 config                                                                        |
-| `lib/generated/prisma/`                                           | Generated client (gitignored). Import from `@/lib/generated/prisma/client`                                     |
+| Path                                                              | What                                                                                                                    |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `app/page.tsx`, `app/rsvp/[code]/page.tsx`, `app/rsvp/actions.ts` | Public: home/lookup, invite page, RSVP Server Actions                                                                   |
+| `app/god/**`, `app/god/actions.ts`                                | Admin pages and Server Actions (guests, invites, event, settings, image uploads)                                        |
+| `app/checkin/**`                                                  | Admin check-in page and actions                                                                                         |
+| `app/god/guests/export/route.ts`                                  | Seating-chart CSV route handler                                                                                         |
+| `proxy.ts`                                                        | Auth0 middleware (mounts `/auth/*`), redirects logged-out users away from `/god`, `/checkin`                            |
+| `components/`                                                     | UI. Client components are marked `"use client"`; `components/admin/` is admin-only UI                                   |
+| `lib/`                                                            | Server and pure helpers (see below)                                                                                     |
+| `lib/settings.ts`                                                 | The settings registry: every admin-editable setting, its kind (`text`/`markdown`/`image`/`images`/`toggle`) and default |
+| `lib/theme.ts`, `app/globals.css`                                 | Theme presets (`data-theme` on `<html>`) and design tokens mapped onto Bootstrap's CSS variables                        |
+| `lib/thank-you.ts`, `app/thank-you/page.tsx`                      | After the wedding: whether the home page becomes the thank-you page or links to `/thank-you`                            |
+| `lib/default-content.ts`                                          | Neutral placeholder copy shown until settings are filled in                                                             |
+| `prisma/schema.prisma`, `prisma/migrations/`, `prisma.config.ts`  | Schema, SQL migrations, Prisma 7 config                                                                                 |
+| `lib/generated/prisma/`                                           | Generated client (gitignored). Import from `@/lib/generated/prisma/client`                                              |
 
 Pure, unit-tested logic lives in `lib/` files without `server-only` imports: `rsvp.ts` (deadline + which guests may
 be changed), `names.ts` (formal addressee line), `invite-code.ts`, `csv.ts`, `admin.ts`, `auth-config.ts`,
