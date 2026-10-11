@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import RsvpForm from "@/components/RsvpForm";
+import EventDetails from "@/components/EventDetails";
 import Faq from "@/components/Faq";
+import Footer from "@/components/Footer";
+import Hero from "@/components/Hero";
 import Markdown from "@/components/Markdown";
+import RsvpForm from "@/components/RsvpForm";
 import {
+  calendarDaysUntil,
+  countdownLabel,
   formatCalendarDate,
   formatDateLong,
   formatDateTimeLong,
@@ -13,7 +18,7 @@ import { normalizeInviteCode } from "@/lib/invite-code";
 import { printFormalName } from "@/lib/names";
 import prisma from "@/lib/prisma";
 import { isRsvpClosed, rsvpClosesAt } from "@/lib/rsvp";
-import { getSettings } from "@/lib/settings";
+import { getSettings, splashPhotoList } from "@/lib/settings";
 
 // Only what the guest needs to see. Never select phone numbers, emails or table assignments here:
 // anyone holding (or guessing) the invite code can load this page.
@@ -80,82 +85,118 @@ export default async function InvitePage({
     settings.coupleName;
 
   return (
-    <div className="rsvp-layout">
-      <div className="card">
-        <div className="card-header">
-          Invite Code <code>{invite.inviteCode}</code>
+    <>
+      <Hero
+        compact
+        photos={splashPhotoList(settings)}
+        eyebrow="You're invited"
+        title={settings.coupleName}
+        lines={[formatDateLong(event.startTime, tz), event.location ?? ""]}
+        countdown={countdownLabel(calendarDaysUntil(event.startTime, tz))}
+      />
+
+      <section className="section">
+        <div className="section-inner section-narrow">
+          <article className="paper invitation">
+            <p className="invitation-greeting">
+              Dearest {printFormalName(guests)},
+            </p>
+            <p>
+              Together with our families, we joyfully invite you to{" "}
+              <b>{event.name}</b>.
+            </p>
+            <dl className="invitation-facts">
+              <div>
+                <dt>When</dt>
+                <dd>{formatDateTimeLong(event.startTime, tz)}</dd>
+              </div>
+              {event.location && (
+                <div>
+                  <dt>Where</dt>
+                  <dd>
+                    {event.location}
+                    {event.sublocation ? `, ${event.sublocation}` : ""}
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <Markdown>{settings.inviteNotice}</Markdown>
+            {invite.customText ? (
+              <p>{invite.customText}</p>
+            ) : (
+              <Markdown>{settings.inviteMessage}</Markdown>
+            )}
+            <p className="invitation-closing">With gratitude,</p>
+            <p className="signature invitation-signature">{signature}</p>
+          </article>
+
+          <div id="rsvp" className="paper rsvp-card">
+            <p className="eyebrow text-center">Kindly reply</p>
+            <h2 className="section-title text-center">Will you join us?</h2>
+            {closed ? (
+              <div className="text-center">
+                <p className="section-lede">
+                  RSVPs closed on{" "}
+                  {formatDateLong(
+                    rsvpClosesAt(invite.respondBy, event.startTime, tz),
+                    tz,
+                  )}
+                  .
+                </p>
+                <p>
+                  Your response:{" "}
+                  <b>
+                    {invite.attending === null
+                      ? "No response"
+                      : invite.attending
+                        ? "Attending"
+                        : "Not attending"}
+                  </b>
+                </p>
+                <p className="text-muted small mb-0">
+                  Please contact the couple if you need to make any changes.
+                  Contact details are in the Q &amp; A below.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="section-lede text-center">
+                  Please respond by <b>{respondBy}</b>.
+                </p>
+                <RsvpForm
+                  code={invite.inviteCode}
+                  recipientNotes={invite.recipientNotes ?? ""}
+                  agreement={
+                    settings.rsvpAgreement.trim() ? (
+                      <Markdown>{settings.rsvpAgreement}</Markdown>
+                    ) : null
+                  }
+                  changePolicy={
+                    <Markdown>{settings.rsvpChangePolicy}</Markdown>
+                  }
+                  guests={guests.map((g) => ({
+                    id: g.id,
+                    name: `${g.firstName} ${g.lastName}`,
+                    isAttending: g.isAttending,
+                  }))}
+                />
+              </>
+            )}
+            <p className="invite-code">
+              Invite code <code>{invite.inviteCode}</code>
+            </p>
+          </div>
         </div>
-        <div className="card-body">
-          <h5 className="card-title">Dearest {printFormalName(guests)}</h5>
-          <p>
-            Together with our families, we cordially invite you to{" "}
-            <b>{event.name}</b>.
-          </p>
-          <p>
-            Date: {formatDateTimeLong(event.startTime, tz)}. Please refer to the
-            FAQs below for the full program details.
-            <br />
-            Venue: {event.location}
-            {event.sublocation ? ` (${event.sublocation})` : ""}
-          </p>
-          <p>
-            Please respond latest <b>by {respondBy}</b> so that we can finalize
-            our guestlist.
-          </p>
-          <Markdown>{settings.inviteNotice}</Markdown>
-          {invite.customText ? (
-            <p>{invite.customText}</p>
-          ) : (
-            <Markdown>{settings.inviteMessage}</Markdown>
-          )}
-          <p>With gratitude,</p>
-          <h3 className="signature">{signature}</h3>
-        </div>
-        <div className="card-body border-top">
-          {closed ? (
-            <>
-              <h6 className="card-subtitle center mb-3">
-                RSVP window closed on{" "}
-                {formatDateLong(
-                  rsvpClosesAt(invite.respondBy, event.startTime, tz),
-                  tz,
-                )}
-              </h6>
-              <p>
-                Your response was:{" "}
-                <b>
-                  {invite.attending === null
-                    ? "No response"
-                    : invite.attending
-                      ? "Attending"
-                      : "Not Attending"}
-                </b>
-              </p>
-              <p>
-                Please contact the couple if you have to make any changes.
-                Contact information can be found in the FAQ below.
-              </p>
-            </>
-          ) : (
-            <RsvpForm
-              code={invite.inviteCode}
-              recipientNotes={invite.recipientNotes ?? ""}
-              agreement={
-                settings.rsvpAgreement.trim() ? (
-                  <Markdown>{settings.rsvpAgreement}</Markdown>
-                ) : null
-              }
-              changePolicy={<Markdown>{settings.rsvpChangePolicy}</Markdown>}
-              guests={guests.map((g) => ({
-                id: g.id,
-                name: `${g.firstName} ${g.lastName}`,
-                isAttending: g.isAttending,
-              }))}
-            />
-          )}
-        </div>
-      </div>
+      </section>
+
+      <EventDetails event={event} settings={settings} />
       <Faq settings={settings} />
-    </div>
+      <Footer
+        coupleName={settings.coupleName}
+        date={formatDateLong(event.startTime, tz)}
+        text={settings.footerText}
+        url={settings.footerUrl}
+      />
+    </>
   );
 }

@@ -102,3 +102,33 @@ export function endOfCalendarDay(d: Date, timeZone: string): Date {
   );
   return new Date(utcEnd - timeZoneOffsetMs(new Date(utcEnd), timeZone));
 }
+
+function calendarDayNumber(d: Date, timeZone: string): number {
+  // en-CA formats as YYYY-MM-DD.
+  const [y, m, day] = new Intl.DateTimeFormat("en-CA", { timeZone })
+    .format(d)
+    .split("-")
+    .map(Number);
+  return Date.UTC(y, m - 1, day) / 86_400_000;
+}
+
+/** Whole calendar days from `now` until `target` in `timeZone` (0 = same day, negative = past). */
+export function calendarDaysUntil(
+  target: Date,
+  timeZone: string,
+  now = new Date(),
+): number {
+  return calendarDayNumber(target, timeZone) - calendarDayNumber(now, timeZone);
+}
+
+/** "128 days to go", "Tomorrow", "Today", or null once the day has passed. */
+export function countdownLabel(days: number): string | null {
+  if (days < 0) return null;
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return `${days} days to go`;
+}
+
+/** "6:30 pm" */
+export const formatTime = (d: Date, tz: string) =>
+  fmt(d, tz, { hour: "numeric", minute: "2-digit" });

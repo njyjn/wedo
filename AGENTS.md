@@ -46,6 +46,7 @@ deployment's database before building**.
 | `components/`                                                     | UI. Client components are marked `"use client"`; `components/admin/` is admin-only UI                          |
 | `lib/`                                                            | Server and pure helpers (see below)                                                                            |
 | `lib/settings.ts`                                                 | The settings registry: every admin-editable setting, its kind (`text`/`markdown`/`image`/`images`) and default |
+| `lib/theme.ts`, `app/globals.css`                                 | Theme presets (`data-theme` on `<html>`) and design tokens mapped onto Bootstrap's CSS variables               |
 | `lib/default-content.ts`                                          | Neutral placeholder copy shown until settings are filled in                                                    |
 | `prisma/schema.prisma`, `prisma/migrations/`, `prisma.config.ts`  | Schema, SQL migrations, Prisma 7 config                                                                        |
 | `lib/generated/prisma/`                                           | Generated client (gitignored). Import from `@/lib/generated/prisma/client`                                     |
@@ -124,4 +125,16 @@ arbitrary.
   components, so use plain Bootstrap classes in Server Components.
 - Admin forms use `useAdminForm` (`components/admin/useAdminForm.ts`), which avoids React 19's automatic form reset
   on validation errors.
-- Never commit images other than the placeholders, or real phone numbers; the hygiene test will fail.
+- Style with the tokens in `app/globals.css` (`--accent`, `--ink`, `--line`, `--font-display`, ...) rather than
+  hard-coded colours or fonts, so every theme preset and the admin accent override keep working.
+- Never commit images other than the favicon, or real phone numbers; the hygiene test will fail.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

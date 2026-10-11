@@ -36,6 +36,26 @@ export const SETTINGS = {
     kind: "text",
   },
 
+  // Look and feel
+  themePreset: {
+    label: "Theme",
+    default: "classic",
+    kind: "text",
+    help: "classic, modern, garden or blush.",
+  },
+  themeAccent: {
+    label: "Accent colour",
+    default: "",
+    kind: "text",
+    help: "Optional hex colour for buttons and highlights, e.g. #7d6038. Pick one dark enough for white text.",
+  },
+  heroTagline: {
+    label: "Cover tagline",
+    default: "We're getting married",
+    kind: "text",
+    help: "Small line above your names on the home page.",
+  },
+
   // Guest-facing content
   splashPhotos: {
     label: "Cover photos",
@@ -151,12 +171,12 @@ export function isSafeUrl(url: string): boolean {
   return /^https:\/\//.test(url) || /^\/(?!\/)/.test(url);
 }
 
+/** Cover photos set in settings; empty until an admin adds some. */
 export function splashPhotoList(settings: Settings): string[] {
-  const photos = settings.splashPhotos
+  return settings.splashPhotos
     .split(/\s+/)
     .map((p) => p.trim())
     .filter(isSafeUrl);
-  return photos.length > 0 ? photos : ["/placeholder-cover.svg"];
 }
 
 export function imageSetting(
