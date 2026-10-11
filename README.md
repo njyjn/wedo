@@ -36,6 +36,8 @@ See [`.env.example`](.env.example). The important ones:
 | `SLACK_BOT_TOKEN`                                                                        | Optional. RSVP notifications go to the channel set in `/god/settings`                                                               |
 | `GOOGLE_MAPS_API_KEY`                                                                    | Optional. Map embed in the FAQ                                                                                                      |
 
+Without the Auth0 variables the guest-facing pages still work and the admin pages are disabled.
+
 Non-secret settings (couple name, default event, time zone, splash photo URLs, invite code length, ...) are edited
 in `/god/settings` and stored in the `Feature` table. Never put secrets there.
 
@@ -66,7 +68,8 @@ Event-specific copy (FAQ, RSVP wording, contact numbers) lives in [`content/`](c
 
 1. Revoke the Slack bot token that was stored in the settings table (v1 exposed it publicly) and set a new one as
    `SLACK_BOT_TOKEN`. Migration `20261011000000_move_secrets_out_of_settings` deletes the old row.
-2. Auth0 SDK v4 renamed its variables and routes: `AUTH0_ISSUER_BASE_URL` → `AUTH0_DOMAIN` (hostname only),
+2. Auth0 SDK v4 renamed its variables and routes: `AUTH0_ISSUER_BASE_URL` → `AUTH0_DOMAIN` (hostname only; the old
+   variable is still read as a fallback),
    `AUTH0_BASE_URL` → `APP_BASE_URL`, and the callback moved from `/api/auth/callback` to `/auth/callback`.
    Update the Auth0 application's allowed callback/logout URLs.
 3. Set `ADMIN_EMAILS`.

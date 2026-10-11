@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth0 } from "@/lib/auth0";
+import { auth0, authConfigured } from "@/lib/auth0";
 
 const PROTECTED_PREFIXES = ["/god", "/checkin"];
 
 export async function proxy(request: NextRequest) {
+  // Without Auth0 the guest pages still work; admin routes are refused by requireAdmin().
+  if (!authConfigured) return NextResponse.next();
+
   // Mounts /auth/* (login, callback, logout) and keeps the session rolling.
   const authResponse = await auth0.middleware(request);
   const { pathname, search } = request.nextUrl;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isAdminUser, parseAdminEmails } from "@/lib/admin";
 import { seatingChartCsv } from "@/lib/csv";
 import { parseDatabaseUrl } from "@/lib/db-url";
+import { auth0Domain, isAuth0Configured } from "@/lib/auth-config";
 
 describe("admin allow-list", () => {
   const admins = parseAdminEmails(" Justin@Example.com, ,bride@example.com ");
@@ -119,5 +120,46 @@ describe("parseDatabaseUrl", () => {
       schema: undefined,
     });
     expect(parseDatabaseUrl(undefined)).toEqual({});
+  });
+});
+
+describe("Auth0 configuration", () => {
+  const base = {
+    AUTH0_CLIENT_ID: "id",
+    AUTH0_CLIENT_SECRET: "s",
+    AUTH0_SECRET: "x".repeat(64),
+  };
+
+  it("prefers AUTH0_DOMAIN and falls back to the v1 issuer URL", () => {
+    expect(
+      auth0Domain({
+        AUTH0_DOMAIN: "a.auth0.com",
+        AUTH0_ISSUER_BASE_URL: "https://b.auth0.com",
+      }),
+    ).toBe("a.auth0.com");
+    expect(
+      auth0Domain({ AUTH0_ISSUER_BASE_URL: "https://tenant.us.auth0.com/" }),
+    ).toBe("tenant.us.auth0.com");
+    expect(auth0Domain({ AUTH0_ISSUER_BASE_URL: "tenant.auth0.com" })).toBe(
+      "tenant.auth0.com",
+    );
+    expect(auth0Domain({})).toBeUndefined();
+  });
+
+  it("needs a domain, client credentials and a secret", () => {
+    expect(
+      isAuth0Configured({
+        ...base,
+        AUTH0_ISSUER_BASE_URL: "https://t.auth0.com",
+      }),
+    ).toBe(true);
+    expect(isAuth0Configured(base)).toBe(false);
+    expect(
+      isAuth0Configured({
+        ...base,
+        AUTH0_DOMAIN: "t.auth0.com",
+        AUTH0_SECRET: "",
+      }),
+    ).toBe(false);
   });
 });
