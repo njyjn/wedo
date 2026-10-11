@@ -27,15 +27,15 @@ Any Postgres works (Neon, Supabase, Vercel Postgres, or local).
 
 See [`.env.example`](.env.example). The important ones:
 
-| Variable                                                                                 | Purpose                                                                                                                             |
-| ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                                                                           | Postgres connection string                                                                                                          |
-| `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`, `APP_BASE_URL` | Auth0 Regular Web Application. Allowed callback URL: `<APP_BASE_URL>/auth/callback`; allowed logout URL: `<APP_BASE_URL>`           |
-| `ADMIN_EMAILS`                                                                           | Comma-separated, verified emails allowed into `/god` and `/checkin`. **Empty means nobody**, so logging in is not enough on its own |
-| `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`, `HCAPTCHA_SECRET`                                       | Required to submit RSVPs. `.env.example` has hCaptcha's always-pass test keys for local use                                         |
-| `SLACK_BOT_TOKEN`                                                                        | Optional. RSVP notifications go to the channel set in `/god/settings`                                                               |
-| `GOOGLE_MAPS_API_KEY`                                                                    | Optional. Map embed in the FAQ                                                                                                      |
-| `BLOB_STORE_ID` or `BLOB_READ_WRITE_TOKEN`                                               | Optional. Image uploads in settings via Vercel Blob. Connecting a store in Vercel sets `BLOB_STORE_ID`                              |
+| Variable                                                                                 | Purpose                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                                           | Postgres connection string                                                                                                                               |
+| `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_CLIENT_SECRET`, `AUTH0_SECRET`, `APP_BASE_URL` | Auth0 Regular Web Application. Allowed callback URL: `<APP_BASE_URL>/auth/callback`; allowed logout URL: `<APP_BASE_URL>`                                |
+| `ADMIN_EMAILS`                                                                           | Optional. Comma-separated, verified emails allowed into `/god` and `/checkin`. If empty, anyone who can log in through the Auth0 application is an admin |
+| `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`, `HCAPTCHA_SECRET`                                       | Required to submit RSVPs. `.env.example` has hCaptcha's always-pass test keys for local use                                                              |
+| `SLACK_BOT_TOKEN`                                                                        | Optional. RSVP notifications go to the channel set in `/god/settings`                                                                                    |
+| `GOOGLE_MAPS_API_KEY`                                                                    | Optional. Map embed in the FAQ                                                                                                                           |
+| `BLOB_STORE_ID` or `BLOB_READ_WRITE_TOKEN`                                               | Optional. Image uploads in settings via Vercel Blob. Connecting a store in Vercel sets `BLOB_STORE_ID`                                                   |
 
 Without the Auth0 variables the guest-facing pages still work and the admin pages are disabled.
 
@@ -67,8 +67,10 @@ environment variables.
 ## Security model
 
 - Every admin page, Server Action and route handler calls `requireAdmin()` (`lib/auth.ts`), which checks for a
-  logged-in user whose verified email is in `ADMIN_EMAILS`. `proxy.ts` also redirects logged-out visitors away
-  from `/god` and `/checkin`, but it is not relied on.
+  logged-in user (and, if `ADMIN_EMAILS` is set, that their verified email is on it). `proxy.ts` also redirects
+  logged-out visitors away from `/god` and `/checkin`, but it is not relied on.
+- Without `ADMIN_EMAILS`, **anyone who can log in is an admin**, so disable sign-ups on the Auth0 connection
+  (Authentication → Database → your connection → "Disable Sign Ups") and create admin accounts yourself.
 - The RSVP page only loads the fields a guest needs (no phone numbers, emails or tables).
 - RSVP submissions are verified server-side: hCaptcha, the invite's deadline, and that every guest belongs to
   that invite.
@@ -84,7 +86,7 @@ environment variables.
    variable is still read as a fallback),
    `AUTH0_BASE_URL` → `APP_BASE_URL`, and the callback moved from `/api/auth/callback` to `/auth/callback`.
    Update the Auth0 application's allowed callback/logout URLs.
-3. Set `ADMIN_EMAILS`.
+3. Disable sign-ups on the Auth0 connection, or set `ADMIN_EMAILS`.
 4. Splash photos no longer come from listing an S3 bucket via Cognito (`S3_COGNITO_IDENTITY_POOL_ID` is unused).
    Put the photo URLs in the `splashPhotos` setting instead.
 5. Use Node.js 22 or newer.

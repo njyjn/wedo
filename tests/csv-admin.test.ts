@@ -28,13 +28,13 @@ describe("admin allow-list", () => {
     expect(isAdminUser(undefined, admins)).toBe(false);
   });
 
-  it("lets nobody in when the list is empty", () => {
+  it("lets any logged-in user in when no allow-list is set", () => {
+    const none = parseAdminEmails(undefined);
+    expect(isAdminUser({ email: "alex@example.com" }, none)).toBe(true);
     expect(
-      isAdminUser(
-        { email: "alex@example.com", email_verified: true },
-        parseAdminEmails(undefined),
-      ),
-    ).toBe(false);
+      isAdminUser({ email: "x@example.com", email_verified: false }, none),
+    ).toBe(true);
+    expect(isAdminUser(undefined, none)).toBe(false);
   });
 });
 
