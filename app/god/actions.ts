@@ -1,5 +1,6 @@
 "use server";
 
+import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
@@ -9,7 +10,12 @@ import {
   MIN_INVITE_CODE_LENGTH,
   normalizeInviteCode,
 } from "@/lib/invite-code";
-import { getSettings, SETTING_KEYS, SETTINGS } from "@/lib/settings";
+import {
+  getSettings,
+  SETTING_KEYS,
+  SETTINGS,
+  type SettingKey,
+} from "@/lib/settings";
 
 export type ActionState = { ok?: boolean; message?: string };
 
@@ -214,7 +220,8 @@ export async function saveSettings(
   );
 
   for (const [key, value] of values) {
-    if (value.length > 5000)
+    const max = SETTINGS[key].kind === "markdown" ? 20_000 : 5000;
+    if (value.length > max)
       return { ok: false, message: `${SETTINGS[key].label} is too long.` };
   }
   const tz = values.find(([k]) => k === "timeZone")?.[1];
@@ -228,17 +235,121 @@ export async function saveSettings(
 
   try {
     await prisma.$transaction(async (tx) => {
-      for (const [name, value] of values) {
-        const { count } = await tx.feature.updateMany({
-          where: { name },
-          data: { value },
-        });
-        if (count === 0) await tx.feature.create({ data: { name, value } });
-      }
+      for (const [name, value] of values) await setSetting(tx, name, value);
     });
   } catch (e) {
     return fail(e, "Could not save settings.");
   }
   revalidatePath("/", "layout");
   return { ok: true, message: "Saved." };
+}
+
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+async function setSetting(
+  tx: Tx | typeof prisma,
+  name: SettingKey,
+  value: string,
+) {
+  const { count } = await tx.feature.updateMany({
+    where: { name },
+    data: { value },
+  });
+  if (count === 0) await tx.feature.create({ data: { name, value } });
+}
+
+const IMAGE_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+// Vercel caps request bodies at 4.5 MB; next.config.ts allows 4 MB for actions.
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024 - 64 * 1024;
+
+const imageKeySchema = z.enum(
+  SETTING_KEYS.filter(
+    (k) => SETTINGS[k].kind === "image" || SETTINGS[k].kind === "images",
+  ) as [SettingKey, ...SettingKey[]],
+);
+
+function isOwnBlob(url: string) {
+  try {
+    return new URL(url).hostname.endsWith(".blob.vercel-storage.com");
+  } catch {
+    return false;
+  }
+}
+
+/** Upload an image to Vercel Blob and store its URL in a setting (appending for photo lists). */
+export async function uploadSettingImage(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin("/god/settings");
+  const key = imageKeySchema.safeParse(str(formData, "key"));
+  if (!key.success) return { ok: false, message: "Unknown image setting." };
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0)
+    return { ok: false, message: "Choose an image to upload." };
+  const ext = IMAGE_TYPES[file.type];
+  if (!ext)
+    return { ok: false, message: "Use a PNG, JPEG, WebP or GIF image." };
+  if (file.size > MAX_IMAGE_BYTES)
+    return { ok: false, message: "Images must be under 4 MB." };
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return {
+      ok: false,
+      message:
+        "Uploads need Vercel Blob (BLOB_READ_WRITE_TOKEN). You can paste an image URL under All settings instead.",
+    };
+  }
+
+  try {
+    const blob = await put(`wedo/${key.data}.${ext}`, file, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: file.type,
+    });
+    const current = (await getSettings())[key.data].trim();
+    if (SETTINGS[key.data].kind === "images") {
+      await setSetting(
+        prisma,
+        key.data,
+        [current, blob.url].filter(Boolean).join("\n"),
+      );
+    } else {
+      await setSetting(prisma, key.data, blob.url);
+      if (current && isOwnBlob(current)) await del(current).catch(() => {});
+    }
+  } catch (e) {
+    return fail(e, "Upload failed.");
+  }
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Uploaded." };
+}
+
+/** Remove one image URL from a setting, deleting it from Vercel Blob if it lives there. */
+export async function removeSettingImage(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin("/god/settings");
+  const key = imageKeySchema.safeParse(str(formData, "key"));
+  const url = str(formData, "url").trim();
+  if (!key.success || !url) return { ok: false, message: "Nothing to remove." };
+  try {
+    const current = (await getSettings())[key.data];
+    const remaining = current
+      .split(/\s+/)
+      .filter((u) => u && u !== url)
+      .join("\n");
+    await setSetting(prisma, key.data, remaining);
+    if (isOwnBlob(url) && process.env.BLOB_READ_WRITE_TOKEN)
+      await del(url).catch(() => {});
+  } catch (e) {
+    return fail(e, "Could not remove image.");
+  }
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Removed." };
 }

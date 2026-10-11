@@ -5,14 +5,11 @@ import { parseDatabaseUrl } from "@/lib/db-url";
 import { auth0Domain, isAuth0Configured } from "@/lib/auth-config";
 
 describe("admin allow-list", () => {
-  const admins = parseAdminEmails(" Justin@Example.com, ,bride@example.com ");
+  const admins = parseAdminEmails(" Alex@Example.com, ,bride@example.com ");
 
   it("matches verified emails case-insensitively", () => {
     expect(
-      isAdminUser(
-        { email: "justin@example.com", email_verified: true },
-        admins,
-      ),
+      isAdminUser({ email: "alex@example.com", email_verified: true }, admins),
     ).toBe(true);
     expect(isAdminUser({ email: "BRIDE@example.com" }, admins)).toBe(true);
   });
@@ -25,10 +22,7 @@ describe("admin allow-list", () => {
       ),
     ).toBe(false);
     expect(
-      isAdminUser(
-        { email: "justin@example.com", email_verified: false },
-        admins,
-      ),
+      isAdminUser({ email: "alex@example.com", email_verified: false }, admins),
     ).toBe(false);
     expect(isAdminUser(undefined, admins)).toBe(false);
   });
@@ -36,7 +30,7 @@ describe("admin allow-list", () => {
   it("lets nobody in when the list is empty", () => {
     expect(
       isAdminUser(
-        { email: "justin@example.com", email_verified: true },
+        { email: "alex@example.com", email_verified: true },
         parseAdminEmails(undefined),
       ),
     ).toBe(false);

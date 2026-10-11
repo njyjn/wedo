@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { Modal } from "react-bootstrap";
 import { submitRsvp } from "@/app/rsvp/actions";
-import { AgreementLabel, ChangePolicy } from "@/content/rsvp";
 
 type FormGuest = { id: number; name: string; isAttending: boolean | null };
 
@@ -13,8 +12,13 @@ export default function RsvpForm({
   code,
   guests,
   recipientNotes,
+  agreement,
+  changePolicy,
 }: {
   code: string;
+  /** Admin-configured text guests must agree to; no checkbox when null. */
+  agreement: React.ReactNode;
+  changePolicy: React.ReactNode;
   guests: FormGuest[];
   recipientNotes: string;
 }) {
@@ -154,25 +158,23 @@ export default function RsvpForm({
             onChange={(e) => setNotes(e.target.value)}
           />
         </div>
-        <div className="mb-3">
-          <p className="form-label">
-            <AgreementLabel />
-          </p>
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="rsvp-agree"
-              required
-            />
-            <label className="form-check-label" htmlFor="rsvp-agree">
-              Agree
-            </label>
+        {agreement && (
+          <div className="mb-3">
+            <div className="form-label">{agreement}</div>
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="rsvp-agree"
+                required
+              />
+              <label className="form-check-label" htmlFor="rsvp-agree">
+                Agree
+              </label>
+            </div>
           </div>
-        </div>
-        <p className="form-text">
-          <ChangePolicy />
-        </p>
+        )}
+        <div className="form-text mb-3">{changePolicy}</div>
         <div className="d-grid gap-2">
           <button
             className="btn btn-success"

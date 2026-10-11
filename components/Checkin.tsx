@@ -14,7 +14,13 @@ function codeFromScan(text: string): string | null {
   }
 }
 
-export default function Checkin({ coupleName }: { coupleName: string }) {
+export default function Checkin({
+  coupleName,
+  paymentQr,
+}: {
+  coupleName: string;
+  paymentQr: string | null;
+}) {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<CheckinSearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +94,7 @@ export default function Checkin({ coupleName }: { coupleName: string }) {
           inviteCode={result.inviteCode}
           guests={result.guests}
           coupleName={coupleName}
+          paymentQr={paymentQr}
         />
         <button
           className="btn btn-light"
