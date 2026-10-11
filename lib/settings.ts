@@ -130,7 +130,12 @@ export const SETTINGS = {
     help: "Shown on the thank-you page (/thank-you) and on invite pages after the wedding.",
   },
   footerText: { label: "Footer text", default: "", kind: "text" },
-  footerUrl: { label: "Footer link", default: "", kind: "text" },
+  footerUrl: {
+    label: "Footer link",
+    default: "",
+    kind: "text",
+    help: "An https link, or a path on this site such as /about.",
+  },
 
   // Behaviour
   enableRsvpForm: {
