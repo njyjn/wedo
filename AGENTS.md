@@ -54,7 +54,7 @@ deployment's database before building**.
 
 Pure, unit-tested logic lives in `lib/` files without `server-only` imports: `rsvp.ts` (deadline + which guests may
 be changed), `names.ts` (formal addressee line), `invite-code.ts`, `csv.ts`, `admin.ts`, `auth-config.ts`,
-`db-url.ts`, `blob.ts`, `format.ts`, `theme.ts`, `thank-you.ts`. Put new business rules there and test them in `tests/`.
+`db-url.ts`, `blob.ts`, `format.ts`, `theme.ts`, `thank-you.ts`, `image.ts`. Put new business rules there and test them in `tests/`.
 
 ## Invariants (don't break these)
 
@@ -106,8 +106,11 @@ use `formatCalendarDate`.
 
 Uploads go through `uploadSettingImage` in `app/god/actions.ts`: PNG/JPEG/WebP/GIF, under 4 MB (Server Actions
 `bodySizeLimit` is 4 MB; Vercel caps bodies at 4.5 MB). Credentials: `BLOB_STORE_ID` (store connected in the Vercel
-dashboard, auth via Vercel OIDC) or `BLOB_READ_WRITE_TOKEN`. Images render with `unoptimized` because hosts are
-arbitrary.
+dashboard, auth via Vercel OIDC) or `BLOB_READ_WRITE_TOKEN`. The settings page resizes photos in the browser first
+(`components/admin/resizeImage.ts`: at most 2400 px, JPEG/WebP; also converts HEIC where the browser can decode it)
+and uploads multi-photo lists one file at a time, since each upload appends to the stored list. Only our own Blob
+URLs go through Next's image optimiser (`isOptimizableImageUrl` in `lib/image.ts`); URLs pasted from other hosts
+render `unoptimized`.
 
 ## Testing locally
 

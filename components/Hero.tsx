@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { isOptimizableImageUrl } from "@/lib/image";
 
 /**
  * Full-bleed cover with the couple's names over a crossfading photo slideshow. Without photos it
@@ -42,15 +43,16 @@ export default function Hero({
       className={`hero${hasPhotos ? " hero-photo" : " hero-plain"}${compact ? " hero-compact" : ""}`}
     >
       {photos.map((src, i) => (
-        // Photos can come from any host configured in settings, so skip the optimiser.
+        // Photos can come from any host; only our own Blob uploads go through the optimiser.
         <Image
           key={src}
           src={src}
           alt=""
           fill
           sizes="100vw"
-          priority={i === 0}
-          unoptimized
+          loading={i === 0 ? "eager" : "lazy"}
+          fetchPriority={i === 0 ? "high" : "auto"}
+          unoptimized={!isOptimizableImageUrl(src)}
           className={`hero-image${i === index ? " is-active" : ""}`}
         />
       ))}

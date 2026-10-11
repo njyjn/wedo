@@ -1,8 +1,14 @@
 "use client";
 
-import { removeSettingImage, uploadSettingImage } from "@/app/god/actions";
+import { useRef, useState } from "react";
+import {
+  removeSettingImage,
+  uploadSettingImage,
+  type ActionState,
+} from "@/app/god/actions";
 import ActionMessage from "@/components/admin/ActionMessage";
 import SubmitButton from "@/components/admin/SubmitButton";
+import { resizeForUpload } from "@/components/admin/resizeImage";
 import { useAdminForm } from "@/components/admin/useAdminForm";
 
 export type ImageField = {
@@ -10,6 +16,8 @@ export type ImageField = {
   label: string;
   help?: string;
   urls: string[];
+  /** Photo lists accept several files at once. */
+  multiple: boolean;
 };
 
 function RemoveButton({
@@ -40,8 +48,57 @@ function RemoveButton({
 }
 
 function ImageSetting({ field }: { field: ImageField }) {
-  const { state, pending, formRef, onSubmit } =
-    useAdminForm(uploadSettingImage);
+  const [state, setState] = useState<ActionState>({});
+  const [pending, setPending] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Upload one file at a time: each upload appends to the stored list, so parallel requests could
+  // overwrite each other.
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const files = [...(inputRef.current?.files ?? [])];
+    if (files.length === 0) return;
+    setPending(true);
+    let done = 0;
+    try {
+      for (const original of files) {
+        setState({
+          message:
+            files.length > 1
+              ? `Uploading ${done + 1} of ${files.length}...`
+              : "Uploading...",
+        });
+        const formData = new FormData();
+        formData.set("key", field.key);
+        formData.set("file", await resizeForUpload(original));
+        const result = await uploadSettingImage({}, formData);
+        if (!result.ok) {
+          setState({
+            ok: false,
+            message:
+              done > 0
+                ? `${result.message} (${done} of ${files.length} uploaded.)`
+                : result.message,
+          });
+          return;
+        }
+        done++;
+      }
+      setState({
+        ok: true,
+        message: done > 1 ? `Uploaded ${done} photos.` : "Uploaded.",
+      });
+      if (inputRef.current) inputRef.current.value = "";
+    } catch (error) {
+      setState({
+        ok: false,
+        message: error instanceof Error ? error.message : "Upload failed.",
+      });
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
     <div className="mb-4">
       <div className="fw-semibold">{field.label}</div>
@@ -63,18 +120,15 @@ function ImageSetting({ field }: { field: ImageField }) {
           <span className="small text-muted">None set.</span>
         )}
       </div>
-      <form
-        ref={formRef}
-        onSubmit={onSubmit}
-        className="row g-2 align-items-center"
-      >
-        <input type="hidden" name="key" value={field.key} />
+      <form onSubmit={onSubmit} className="row g-2 align-items-center">
         <div className="col-auto">
           <input
+            ref={inputRef}
             className="form-control form-control-sm"
             type="file"
             name="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple={field.multiple}
+            accept="image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif"
             aria-label={`Upload ${field.label}`}
             required
           />
