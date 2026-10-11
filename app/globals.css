@@ -247,6 +247,19 @@ p {
   gap: 0 1.75rem;
 }
 
+/* Centre the section links on the page, not in the space left between the brand and account links. */
+@media (min-width: 992px) {
+  .site-nav > .container-xl {
+    position: relative;
+  }
+
+  .site-links {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
 .site-account .nav-link,
 .site-account .navbar-text {
   color: var(--muted);

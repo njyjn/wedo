@@ -28,7 +28,7 @@ export default function NavbarShell({
         <Navbar.Toggle aria-controls="main-navbar" />
         <Navbar.Collapse id="main-navbar">
           {!isAdminArea && (
-            <ul className="navbar-nav mx-lg-auto site-links">
+            <ul className="navbar-nav site-links">
               {GUEST_LINKS.map((l) => (
                 <li className="nav-item" key={l.href}>
                   <Link className="nav-link" href={l.href}>
@@ -38,9 +38,7 @@ export default function NavbarShell({
               ))}
             </ul>
           )}
-          <ul
-            className={`navbar-nav align-items-lg-center gap-lg-2 site-account${isAdminArea ? " ms-lg-auto" : ""}`}
-          >
+          <ul className="navbar-nav align-items-lg-center gap-lg-2 ms-lg-auto site-account">
             {account}
           </ul>
         </Navbar.Collapse>
