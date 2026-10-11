@@ -1,86 +1,62 @@
-import { Guest } from ".prisma/client";
-import { getFeature } from "./feature";
-import prisma from "./prisma";
-import Slack from "./slack";
+// Pure RSVP rules, shared by the server action and unit tests.
+import { endOfCalendarDay, isDateOnly } from "@/lib/format";
 
-export const sendRsvpNotification = async (
-  inviteCode: String,
-  attendingGuests: Guest[],
-  recipientNotes?: String
-) => {
-  const text = `:raised_hands: \`${inviteCode}\` has responded`;
-  const blocks = [
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `:raised_hands: \`${inviteCode}\` has responded`,
-      },
-    },
-    {
-      type: "section",
-      fields: [
-        {
-          type: "mrkdwn",
-          text: "*Guests*",
-        },
-        {
-          type: "plain_text",
-          text: `${attendingGuests
-            .map((g) => {
-              return `${g.isAttending ? ":white_check_mark:" : ":x:"} ${
-                g.firstName
-              }`;
-            })
-            .join("\n")}`,
-        },
-      ],
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `\`\`\`\n${recipientNotes}\n\`\`\``,
-      },
-    },
-  ];
-  await prepareAndSendMessage(text, blocks);
+export type RsvpSubmission = {
+  attending: boolean;
+  guestIds: number[];
 };
 
-export const sendNotAttendingNotification = async (
-  inviteCode: String,
-  recipientNotes?: String
-) => {
-  const text = `:no_good: \`${inviteCode}\` will not attend`;
-  const blocks = [
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `:no_good: \`${inviteCode}\` will not attend`,
-      },
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `\`\`\`\n${recipientNotes}\n\`\`\``,
-      },
-    },
-  ];
-  await prepareAndSendMessage(text, blocks);
-};
+export type RsvpPlan =
+  | { ok: true; attendingIds: number[]; notAttendingIds: number[] }
+  | { ok: false; error: string };
 
-const prepareAndSendMessage = async (text: string, blocks: any) => {
-  try {
-    const channel = getFeature(
-      "slackNotificationChannel",
-      await prisma.feature.findMany()
-    );
-    const token = getFeature("slackBotToken", await prisma.feature.findMany());
-    const slack = new Slack(token);
-    await slack.sendMessage(channel, text, blocks);
-  } catch (error) {
-    console.error(error);
+/**
+ * When the RSVP form closes. A respond-by date means "by the end of that day" in the event's
+ * time zone; without one, RSVPs close when the event starts.
+ */
+export function rsvpClosesAt(
+  respondBy: Date | null,
+  eventStart: Date,
+  timeZone: string,
+): Date {
+  if (!respondBy) return eventStart;
+  return isDateOnly(respondBy)
+    ? endOfCalendarDay(respondBy, timeZone)
+    : respondBy;
+}
+
+export function isRsvpClosed(
+  respondBy: Date | null,
+  eventStart: Date,
+  timeZone: string,
+  now = new Date(),
+): boolean {
+  return now > rsvpClosesAt(respondBy, eventStart, timeZone);
+}
+
+/** Decide which of the invite's guests are attending. Only guests on this invite can be changed. */
+export function planRsvp(
+  inviteGuestIds: number[],
+  submission: RsvpSubmission,
+): RsvpPlan {
+  const onInvite = new Set(inviteGuestIds);
+  if (submission.guestIds.some((id) => !onInvite.has(id))) {
+    return { ok: false, error: "That guest is not on this invite." };
   }
-};
+  if (!submission.attending) {
+    return { ok: true, attendingIds: [], notAttendingIds: [...inviteGuestIds] };
+  }
+  const selected = new Set(submission.guestIds);
+  if (selected.size === 0) {
+    return {
+      ok: false,
+      error:
+        'Please indicate which guests are attending. If none, select "Unable to Attend".',
+    };
+  }
+  return {
+    ok: true,
+    attendingIds: inviteGuestIds.filter((id) => selected.has(id)),
+    notAttendingIds: inviteGuestIds.filter((id) => !selected.has(id)),
+  };
+}

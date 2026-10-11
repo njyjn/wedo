@@ -1,11 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider            = "prisma-client"
+  output              = "../lib/generated/prisma"
+  // Extensionless imports so both Turbopack and tsx resolve the generated .ts files.
+  importFileExtension = ""
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
 }
 
 model User {
@@ -76,6 +77,7 @@ model Table {
   guests Guest[]
 }
 
+// Non-secret, admin-editable settings. Secrets (API tokens) live in environment variables.
 model Feature {
   id    Int     @id @default(autoincrement())
   name  String
