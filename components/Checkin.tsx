@@ -1,172 +1,172 @@
-import React, { useEffect, useState } from "react";
-import { Button, Card, Form, Row } from "react-bootstrap";
-import { useRouter } from "next/router";
-import CheckinCard, { CheckinCardProps } from "./CheckinCard";
-import { Guest } from ".prisma/client";
-import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode";
+"use client";
 
-const Checkin: React.FC = () => {
-  const router = useRouter();
-  const [isSubmitting, setSubmitting] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
-  const [checkinCard, setCheckinCard] = useState<CheckinCardProps>(null);
-  const [error, setError] = useState(false);
-  const [suggestions, setSuggestions] = useState(null);
+import { useEffect, useState, useTransition } from "react";
+import CheckinCard from "@/components/CheckinCard";
+import { searchCheckin, type CheckinSearchResult } from "@/app/checkin/actions";
 
-  function onScanSuccess(decodedResult) {
-    let code;
-    try {
-      const url = new URL(decodedResult);
-      code = url.pathname.replace("/rsvp/", "");
-      setError(false);
-      setInviteCode(code);
-    } catch (e) {
-      setError(true);
-    }
+/** Pull the invite code out of a scanned RSVP link (https://host/rsvp/CODE), or accept a bare code. */
+function codeFromScan(text: string): string | null {
+  try {
+    const match = new URL(text).pathname.match(/\/rsvp\/([^/]+)\/?$/);
+    return match ? decodeURIComponent(match[1]) : null;
+  } catch {
+    return /^[A-Za-z0-9]{1,32}$/.test(text.trim()) ? text.trim() : null;
   }
+}
 
-  function onScanFailure(error) {}
+export default function Checkin({ coupleName }: { coupleName: string }) {
+  const [query, setQuery] = useState("");
+  const [result, setResult] = useState<CheckinSearchResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (!checkinCard) {
-      let html5QrcodeScanner = new Html5QrcodeScanner(
-        "qrscanner",
-        {
-          fps: 10,
-          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        },
-        false
-      );
-      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-    }
-  }, [checkinCard]);
-
-  const back = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setCheckinCard(null);
-    setInviteCode("");
-    setError(false);
-  };
-
-  const checkin = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (inviteCode == "") {
-      setSuggestions(null);
-      setError(false);
+  const search = (q: string) => {
+    if (!q.trim()) {
+      setResult(null);
+      setError(null);
       return;
     }
-    setSuggestions(null);
-    setError(false);
-    setSubmitting(true);
-    try {
-      const response = await (
-        await fetch(`/api/checkin?inviteCode=${inviteCode}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        })
-      ).json();
-      if (response["eager"]) {
-        setSuggestions(response["guests"]);
-      } else {
-        setCheckinCard({
-          invite: response,
-          event: response["event"],
-          guests: response["guests"],
-        });
-        router.push("/checkin", undefined, { shallow: true });
+    setError(null);
+    startTransition(async () => {
+      try {
+        const res = await searchCheckin(q);
+        setResult(res);
+        if (res.kind === "notFound")
+          setError(
+            "No invite or guest found. Please check-in directly with a host",
+          );
+      } catch {
+        setError("Search failed. Please try again.");
       }
-    } catch (error) {
-      console.error(error);
-      setCheckinCard({
-        notFound: true,
-      });
-      setError(true);
-    } finally {
-      setSubmitting(false);
-    }
+    });
   };
 
-  const retriever = (
-    <Card
-      border="0"
-      className="flex align-items-center justify-content-center center text-center"
-    >
-      <h1 className="signature">Justin & Alethea</h1>
-      <h5>Welcome!</h5>
-      <Card.Body>
-        <Form onSubmit={checkin}>
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="text"
-              className="text-center"
-              placeholder="Enter invite code or name"
-              autoFocus
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              value={inviteCode}
-            />
-            <Form.Text>
-              Please approach the host if you need assistance
-            </Form.Text>
-          </Form.Group>
-          <p>
-            {suggestions && suggestions.length > 1 ? (
-              suggestions.map((g: Guest) => {
-                return (
-                  <Button
-                    key={g.id}
-                    variant="link"
-                    onClick={(e) => {
-                      setInviteCode(g["invite"]["inviteCode"]);
-                    }}
-                  >
-                    {g.firstName} {g.lastName}
-                  </Button>
-                );
-              })
-            ) : (
-              <></>
-            )}
-          </p>
-          <Button variant="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <div className="spinner-border spinner-border-sm" role="status">
-                <span className="sr-only"></span>
-              </div>
-            ) : (
-              "Search"
-            )}
-          </Button>
-          <p>
-            {error ? (
-              <span style={{ color: "red" }}>
-                No invite or guest found. Please check-in directly with a host
-              </span>
-            ) : (
-              <></>
-            )}
-          </p>
-        </Form>
-        Scan QR code
-        <div id="qrscanner"></div>
-      </Card.Body>
-    </Card>
-  );
+  const showingInvite = result?.kind === "invite";
+
+  useEffect(() => {
+    if (showingInvite) return;
+    let cancelled = false;
+    let scanner: { clear(): Promise<void> } | undefined;
+    // html5-qrcode touches window on import, so load it only in the browser.
+    import("html5-qrcode").then(
+      ({ Html5QrcodeScanner, Html5QrcodeScanType }) => {
+        if (cancelled) return;
+        const s = new Html5QrcodeScanner(
+          "qrscanner",
+          {
+            fps: 10,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+          },
+          false,
+        );
+        s.render(
+          (decoded) => {
+            const code = codeFromScan(decoded);
+            if (!code) {
+              setError("That QR code is not an invite.");
+              return;
+            }
+            setQuery(code.toUpperCase());
+            search(code);
+          },
+          () => {},
+        );
+        scanner = s;
+      },
+    );
+    return () => {
+      cancelled = true;
+      scanner?.clear().catch(() => {});
+    };
+  }, [showingInvite]);
+
+  if (result?.kind === "invite") {
+    return (
+      <div className="main d-grid gap-3">
+        <CheckinCard
+          key={result.inviteCode}
+          inviteCode={result.inviteCode}
+          guests={result.guests}
+          coupleName={coupleName}
+        />
+        <button
+          className="btn btn-light"
+          onClick={() => {
+            setResult(null);
+            setQuery("");
+            setError(null);
+          }}
+        >
+          Back
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="main">
-      <Row xs={1} md={1}>
-        {checkinCard && !checkinCard.notFound ? (
-          <div className="d-grid gap-3">
-            <CheckinCard checkinCard={checkinCard} />
-            <Button variant="light" onClick={back} mx-auto>
-              Back
-            </Button>
-          </div>
-        ) : (
-          retriever
-        )}
-      </Row>
+      <div className="card border-0 text-center align-items-center">
+        <h1 className="signature">{coupleName}</h1>
+        <h5>Welcome!</h5>
+        <div className="card-body w-100">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              search(query);
+            }}
+          >
+            <div className="mb-3">
+              <input
+                type="text"
+                className="form-control text-center"
+                placeholder="Enter invite code or name"
+                aria-label="Invite code or name"
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value.toUpperCase())}
+              />
+              <div className="form-text">
+                Please approach the host if you need assistance
+              </div>
+            </div>
+            {result?.kind === "suggestions" && (
+              <p>
+                {result.guests.map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    className="btn btn-link"
+                    onClick={() => {
+                      setQuery(g.inviteCode);
+                      search(g.inviteCode);
+                    }}
+                  >
+                    {g.name}
+                  </button>
+                ))}
+              </p>
+            )}
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={isPending}
+            >
+              {isPending ? (
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-label="Loading"
+                />
+              ) : (
+                "Search"
+              )}
+            </button>
+            {error && <p className="text-danger mt-2">{error}</p>}
+          </form>
+          <p className="mt-3 mb-1">Scan QR code</p>
+          <div id="qrscanner" />
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Checkin;
+}
