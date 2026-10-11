@@ -6,9 +6,11 @@ import {
   DEFAULT_CHANGE_POLICY,
   DEFAULT_FAQ,
   DEFAULT_INVITE_MESSAGE,
+  DEFAULT_THANK_YOU,
 } from "@/lib/default-content";
 
-export type SettingKind = "text" | "markdown" | "image" | "images";
+/** "toggle" settings are stored as "1" (on) or "0" (off) and edited with a switch. */
+export type SettingKind = "text" | "markdown" | "image" | "images" | "toggle";
 
 type SettingDef = {
   label: string;
@@ -36,12 +38,44 @@ export const SETTINGS = {
     kind: "text",
   },
 
+  // Look and feel
+  themePreset: {
+    label: "Theme",
+    default: "classic",
+    kind: "text",
+    help: "classic, modern, garden or blush.",
+  },
+  themeAccent: {
+    label: "Accent colour",
+    default: "",
+    kind: "text",
+    help: "Optional hex colour for buttons and highlights, e.g. #7d6038. Pick one dark enough for white text.",
+  },
+  heroTagline: {
+    label: "Cover tagline",
+    default: "We're getting married",
+    kind: "text",
+    help: "Small line above your names on the home page.",
+  },
+
   // Guest-facing content
   splashPhotos: {
     label: "Cover photos",
     default: "",
     kind: "images",
     help: "One URL per line. Uploading adds a photo.",
+  },
+  galleryPhotos: {
+    label: "Gallery photos",
+    default: "",
+    kind: "images",
+    help: "Shown as a photo grid on the thank-you page. Pick your favourites; link the full album below. Large photos are resized before upload.",
+  },
+  albumUrl: {
+    label: "Full album link",
+    default: "",
+    kind: "text",
+    help: "Optional https link to the complete album (Google Photos, iCloud, your photographer), shown under the gallery.",
   },
   inviteMessage: {
     label: "Invitation message",
@@ -89,14 +123,27 @@ export const SETTINGS = {
     kind: "image",
     help: "1240 × 1748 px. Text and QR code are drawn on top.",
   },
+  thankYouMessage: {
+    label: "Message from the couple",
+    default: DEFAULT_THANK_YOU,
+    kind: "markdown",
+    help: "Shown on the thank-you page (/thank-you) and on invite pages after the wedding.",
+  },
   footerText: { label: "Footer text", default: "", kind: "text" },
   footerUrl: { label: "Footer link", default: "", kind: "text" },
 
   // Behaviour
   enableRsvpForm: {
-    label: "Enable RSVP form (1 = on)",
+    label: "RSVP form",
     default: "1",
-    kind: "text",
+    kind: "toggle",
+    help: 'Off: the home page shows "Save the date" instead of the invite-code form.',
+  },
+  thankYouPage: {
+    label: "Switch to the thank-you page after the wedding",
+    default: "1",
+    kind: "toggle",
+    help: "On: the day after the wedding, the home page shows only your message. Off: the normal page stays, with a link to the thank-you page (/thank-you, which you can also open any time to preview it).",
   },
   defaultInviteCodeLength: {
     label: "Invite code length (min 6)",
@@ -157,12 +204,26 @@ export function isSafeUrl(url: string): boolean {
   return /^https:\/\//.test(url) || /^\/(?!\/)/.test(url);
 }
 
+/** Cover photos set in settings; empty until an admin adds some. */
 export function splashPhotoList(settings: Settings): string[] {
-  const photos = settings.splashPhotos
+  return settings.splashPhotos
     .split(/\s+/)
     .map((p) => p.trim())
     .filter(isSafeUrl);
-  return photos.length > 0 ? photos : ["/placeholder-cover.svg"];
+}
+
+/** Photos for the thank-you page gallery. */
+export function galleryPhotoList(settings: Settings): string[] {
+  return settings.galleryPhotos
+    .split(/\s+/)
+    .map((p) => p.trim())
+    .filter(isSafeUrl);
+}
+
+/** The full-album link, if it is a plain https URL. */
+export function albumLink(settings: Settings): string | null {
+  const url = settings.albumUrl.trim();
+  return /^https:\/\//.test(url) ? url : null;
 }
 
 export function imageSetting(
@@ -171,4 +232,12 @@ export function imageSetting(
 ): string | null {
   const url = settings[key].trim();
   return url && isSafeUrl(url) ? url : null;
+}
+
+/** Both partners' full names for signing messages, falling back to the short couple name. */
+export function coupleSignature(settings: Settings): string {
+  return (
+    [settings.groomName, settings.brideName].filter(Boolean).join(" & ") ||
+    settings.coupleName
+  );
 }

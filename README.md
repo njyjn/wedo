@@ -44,17 +44,24 @@ Without the Auth0 variables the guest-facing pages still work and the admin page
 
 ## Making it yours
 
-Nothing about a specific wedding lives in this repository. A fresh deployment shows neutral placeholder copy and a
-placeholder cover image; you fill in your own in **God → Settings** (`/god/settings`):
+Nothing about a specific wedding lives in this repository. A fresh deployment shows neutral placeholder copy on a
+plain cover; you fill in your own in **God → Settings** (`/god/settings`):
 
+- **Event:** the wedding date and time (in the event time zone), venue and event name. Saving creates the event if
+  none exists yet.
+- **After the wedding:** a message from the couple. By default the home page turns into a thank-you page showing
+  only that message the day after the wedding; switch `thankYouPage` off to keep the normal page (e.g. for a demo)
+  with a link to `/thank-you` instead. `/thank-you` is always reachable, so you can preview it.
+- **Look:** a theme preset (`classic`, `modern`, `garden` or `blush`, each with its own fonts and palette), an
+  optional accent colour, and the tagline above your names on the cover.
 - **Text:** couple names, invitation message, RSVP notes and agreement, change policy, FAQ (Markdown, including
   tables and images), map location, footer.
-- **Images:** cover photos, an optional gift/payment QR code shown after check-in, and an optional printable invite
+- **Images:** cover photos, a photo gallery for the thank-you page (plus an optional link to your full album), an optional gift/payment QR code shown after check-in, and an optional printable invite
   card background (1240 × 1748 px). Uploads are stored in [Vercel Blob](https://vercel.com/docs/vercel-blob); connect
   a public Blob store to the project (this sets `BLOB_STORE_ID`), or paste image URLs instead.
 
 All of this is stored in your database and Blob store, so forks of the repository never contain your photos, contact
-details or payment information. A test (`tests/repo-hygiene.test.ts`) fails if images other than the placeholders,
+details or payment information. A test (`tests/repo-hygiene.test.ts`) fails if images other than the favicon,
 or phone numbers, are committed. Never put secrets in settings: values are visible to admins. Secrets belong in
 environment variables.
 

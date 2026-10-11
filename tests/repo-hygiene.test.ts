@@ -11,10 +11,7 @@ const tracked = execFileSync("git", ["ls-files"], { encoding: "utf8" })
 
 describe("repository hygiene", () => {
   it("only ships neutral assets in public/", () => {
-    const allowed = new Set([
-      "public/favicon.ico",
-      "public/placeholder-cover.svg",
-    ]);
+    const allowed = new Set(["public/favicon.ico"]);
     expect(
       tracked.filter((f) => f.startsWith("public/") && !allowed.has(f)),
     ).toEqual([]);

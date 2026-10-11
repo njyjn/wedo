@@ -26,3 +26,6 @@ Please RSVP by the deadline given in your invitation.
 
 The hosts can edit this FAQ, including contact details, in **God → Settings**.
 `;
+
+export const DEFAULT_THANK_YOU =
+  "Thank you for celebrating with us. Having you there meant the world to us.";

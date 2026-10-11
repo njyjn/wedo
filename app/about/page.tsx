@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Mono } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -7,24 +6,15 @@ import QRCode from "qrcode";
 import { normalizeInviteCode } from "@/lib/invite-code";
 import { getSettings } from "@/lib/settings";
 import { siteUrl } from "@/lib/site-url";
+import { THEMES } from "@/lib/theme";
 import styles from "./about.module.css";
-
-const display = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-});
-const mono = IBM_Plex_Mono({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
 
 const SOURCE_URL = "https://github.com/njyjn/wedo";
 
 export const metadata: Metadata = {
   title: "About",
   description:
-    "An open-source wedding invite, RSVP, seating and check-in app: one code per household, from the printed card to the door.",
+    "An open-source wedding website with invites, RSVPs, seating and check-in: one code per household, from the printed card to the door.",
 };
 
 function Frame({ url, children }: { url: string; children: React.ReactNode }) {
@@ -42,7 +32,6 @@ function Frame({ url, children }: { url: string; children: React.ReactNode }) {
 }
 
 function Feature({
-  id,
   eyebrow,
   title,
   body,
@@ -51,7 +40,6 @@ function Feature({
   caption,
   reverse = false,
 }: {
-  id: string;
   eyebrow: string;
   title: string;
   body: string[];
@@ -61,13 +49,13 @@ function Feature({
   reverse?: boolean;
 }) {
   return (
-    <section id={id} className={styles.section}>
+    <section className={styles.section}>
       <div
         className={`${styles.wrap} ${styles.grid} ${reverse ? styles.reverse : ""}`}
       >
         <div className={styles.text}>
-          <p className={styles.eyebrow}>{eyebrow}</p>
-          <h2 className={styles.serif}>{title}</h2>
+          <p className="eyebrow">{eyebrow}</p>
+          <h2 className={styles.display}>{title}</h2>
           {body.map((p) => (
             <p key={p}>{p}</p>
           ))}
@@ -86,41 +74,83 @@ function Feature({
   );
 }
 
-// The mockups below use fictional guests and are drawn in HTML: the repository ships no
-// screenshots (see tests/repo-hygiene.test.ts).
+// The mockups below use fictional guests and are drawn in HTML on the theme tokens: the
+// repository ships no screenshots (see tests/repo-hygiene.test.ts).
+
+function InviteMock() {
+  return (
+    <Frame url="wedo.example/rsvp/K7QM4PXR">
+      <div className={styles.cover}>
+        <p className={styles.tiny}>You’re invited</p>
+        <p className={`${styles.display} ${styles.coverNames}`}>Alex & Sam</p>
+        <p className={styles.coverLine}>Saturday, 14 November 2026</p>
+        <p className={styles.coverLine}>The Garden Ballroom</p>
+        <span className={styles.pill}>34 days to go</span>
+      </div>
+      <div className={styles.paper}>
+        <h3 className={styles.display}>Dearest Mr. & Mrs. Jordan Tan,</h3>
+        <p className="mt-2 mb-0">
+          Together with our families, we joyfully invite you to our wedding.
+        </p>
+        <div className={styles.rule} />
+        <p className={`${styles.tiny} mb-0`}>When</p>
+        <p className="mb-2">Saturday, 14 November 2026 at 7:00 pm</p>
+        <p className={`${styles.tiny} mb-0`}>Where</p>
+        <p className="mb-0">The Garden Ballroom, Level 3</p>
+        <div className={styles.rule} />
+        <p className="mb-1">With gratitude,</p>
+        <p className={styles.signature}>Alex Lim & Sam Ong</p>
+      </div>
+    </Frame>
+  );
+}
 
 function RsvpMock() {
   return (
-    <Frame url="wedo.example/rsvp/K7QM4PXR">
-      <div className={`${styles.screen} ${styles.rsvpGrid}`}>
-        <div className={styles.cover} aria-hidden="true" />
-        <div>
-          <p className={`${styles.signature} ${styles.center}`}>Alex & Sam</p>
-          <p className={`${styles.small} ${styles.center} mt-2 mb-3`}>
-            Saturday, 14 November · 7pm
-            <br />
-            The Garden Ballroom
+    <div className="d-grid gap-3">
+      <Frame url="wedo.example/rsvp/K7QM4PXR">
+        <div className={styles.screen}>
+          <p className={`${styles.tiny} ${styles.center} mb-1`}>Kindly reply</p>
+          <p className={`${styles.display} ${styles.center} fs-4 mb-1 lh-sm`}>
+            Will you join us?
           </p>
-          <div className={styles.small}>Attending (2)</div>
+          <p className={`${styles.small} ${styles.center} mb-3`}>
+            Please respond by <b>Saturday, 31 October 2026</b>.
+          </p>
           {[
             ["Jordan Tan", true],
             ["Mei Tan", true],
             ["Kai Tan", false],
-          ].map(([name, on]) => (
-            <div className={styles.check} key={String(name)}>
-              <span className={on ? styles.boxOn : styles.box} />
-              {name}
+          ].map(([name, accepts]) => (
+            <div className={styles.guestRow} key={String(name)}>
+              <span className={styles.guestName}>{name}</span>
+              <span className={styles.choices}>
+                <span className={accepts ? styles.choiceOn : styles.choice}>
+                  Accepts
+                </span>
+                <span className={accepts ? styles.choice : styles.choiceOn}>
+                  Declines
+                </span>
+              </span>
             </div>
           ))}
           <div className={styles.field}>Can’t wait to celebrate with you!</div>
-          <p className={`${styles.small} mt-2 mb-0`}>
-            You can change your response until 31 October.
-          </p>
-          <span className={styles.mockBtn}>Attending</span>
-          <span className={styles.mockBtnRed}>Unable to Attend</span>
+          <span className={styles.mockBtn}>Send RSVP</span>
         </div>
-      </div>
-    </Frame>
+      </Frame>
+      <Frame url="Slack · #rsvps">
+        <div className={`${styles.screen} ${styles.slack}`}>
+          <p className="mb-2">
+            🙌 <code className={styles.code}>K7QM4PXR</code> has responded
+          </p>
+          <p className="mb-1 fw-semibold">Guests</p>
+          <p className="mb-2">✅ Jordan ✅ Mei ❌ Kai</p>
+          <pre className={styles.slackQuote}>
+            Can’t wait to celebrate with you!
+          </pre>
+        </div>
+      </Frame>
+    </div>
   );
 }
 
@@ -129,14 +159,14 @@ function CardMock({ qr, code }: { qr: string; code: string }) {
     <Frame url="wedo.example/god/invites/K7QM4PXR">
       <div className={styles.cardStage}>
         <div className={styles.card}>
-          <span className={styles.eyebrow}>Together with their families</span>
+          <span className={styles.tiny}>Together with their families</span>
           <p className={`${styles.signature} mt-2`}>Alex & Sam</p>
           <p className="mt-2 mb-0">request the pleasure of the company of</p>
           <p className="mt-2 fw-semibold">Mr. & Mrs. Jordan Tan, Family</p>
           <div className={styles.cardBottom}>
             <div>
               <div className={styles.small}>Invite code</div>
-              <div className={styles.code}>{code}</div>
+              <div className={styles.cardCode}>{code}</div>
               <div className={`${styles.small} mt-1`}>RSVP by 31 Oct</div>
             </div>
             <Image
@@ -154,6 +184,13 @@ function CardMock({ qr, code }: { qr: string; code: string }) {
   );
 }
 
+const STATS = [
+  ["Attending", "86", "of 120 guests"],
+  ["Declined", "14", ""],
+  ["Awaiting reply", "20", ""],
+  ["Checked in", "0", ""],
+];
+
 const TABLES = [
   { name: "1", seated: 10, max: 10, vip: true },
   { name: "2", seated: 9, max: 10, vip: true },
@@ -163,10 +200,19 @@ const TABLES = [
   { name: "6", seated: 4, max: 10, vip: false },
 ];
 
-function SeatingMock() {
+function GuestsMock() {
   return (
-    <Frame url="wedo.example/god/guests">
+    <Frame url="wedo.example/god">
       <div className={styles.screen}>
+        <div className={styles.stats}>
+          {STATS.map(([label, value, note]) => (
+            <div className={styles.stat} key={label}>
+              <div className={styles.small}>{label}</div>
+              <div className={styles.statValue}>{value}</div>
+              {note && <div className={styles.small}>{note}</div>}
+            </div>
+          ))}
+        </div>
         <div className={styles.tables}>
           {TABLES.map((t) => (
             <div
@@ -186,42 +232,6 @@ function SeatingMock() {
             </div>
           ))}
         </div>
-        <table className={styles.rows}>
-          <thead>
-            <tr>
-              <th>Guest</th>
-              <th>Invite</th>
-              <th>Table</th>
-              <th>RSVP</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Jordan Tan</td>
-              <td>K7QM4PXR</td>
-              <td>4</td>
-              <td>Attending</td>
-            </tr>
-            <tr>
-              <td>Mei Tan</td>
-              <td>K7QM4PXR</td>
-              <td>4</td>
-              <td>Attending</td>
-            </tr>
-            <tr className={styles.shaded}>
-              <td>Priya Raman</td>
-              <td>W3HNC9TD</td>
-              <td>5</td>
-              <td>Attending</td>
-            </tr>
-            <tr className={styles.shaded}>
-              <td>Daniel Lim</td>
-              <td>R8VYF2LB</td>
-              <td>5</td>
-              <td>No reply</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </Frame>
   );
@@ -251,28 +261,44 @@ function CheckinMock() {
   );
 }
 
-const SETTINGS_MOCK = [
-  ["Couple name", "text", "Alex & Sam"],
-  ["Invitation message", "markdown", "We would love for you to join us…"],
-  ["FAQ", "markdown", "| Dress code | Garden formal |"],
-  ["Cover photos", "images", "3 uploaded"],
-  ["Gift / payment QR code", "image", "1 uploaded"],
-  ["Event time zone", "text", "Asia/Singapore"],
-];
-
-function SettingsMock() {
+function ThemesMock() {
   return (
-    <Frame url="wedo.example/god/settings">
-      <div className={styles.screen}>
-        {SETTINGS_MOCK.map(([label, kind, value]) => (
-          <div className={styles.setting} key={label}>
-            <div>
-              {label}
-              <span className={styles.kind}>{kind}</span>
-            </div>
-            <div className={styles.value}>{value}</div>
+    <div className={styles.themes}>
+      {THEMES.map((theme) => (
+        <div className={styles.swatch} data-theme={theme} key={theme}>
+          <div className={styles.swatchCover}>
+            <p className={`${styles.tiny} mb-0`}>We’re getting married</p>
+            <p className={`${styles.display} ${styles.swatchNames}`}>
+              Alex & Sam
+            </p>
+            <span className={styles.swatchBtn}>RSVP</span>
           </div>
-        ))}
+          <div className={styles.swatchLabel}>{theme}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ThankYouMock() {
+  return (
+    <Frame url="wedo.example/thank-you">
+      <div className={styles.cover}>
+        <p className={styles.tiny}>Thank you</p>
+        <p className={`${styles.display} ${styles.coverNames}`}>Alex & Sam</p>
+        <p className={styles.coverLine}>Saturday, 14 November 2026</p>
+      </div>
+      <div className={styles.screen}>
+        <p className="mb-2">
+          Thank you for celebrating with us. Here are a few of our favourite
+          moments from the day.
+        </p>
+        <p className={`${styles.tiny} ${styles.center} mt-3 mb-0`}>Memories</p>
+        <div className={styles.photos} aria-hidden="true">
+          {Array.from({ length: 6 }, (_, i) => (
+            <span className={styles.photo} key={i} />
+          ))}
+        </div>
       </div>
     </Frame>
   );
@@ -304,39 +330,6 @@ planRsvp(inviteGuestIds, { attending, guestIds })
   );
 }
 
-function ResponseMock() {
-  return (
-    <div className="d-grid gap-3">
-      <Frame url="wedo.example/rsvp/K7QM4PXR">
-        <div className={styles.screen}>
-          <p className="fw-semibold mb-1">All set!</p>
-          <p className={`${styles.small} mb-0`}>
-            Thanks for your response. See you there!
-          </p>
-          <div className="d-flex gap-2 justify-content-end">
-            <span className={styles.mockBtnLight}>Edit response</span>
-            <span className={styles.mockBtnBlue}>Go to homepage</span>
-          </div>
-        </div>
-      </Frame>
-      <Frame url="Slack · #rsvps">
-        <div className={styles.screen}>
-          <p className="mb-2">
-            🙌 <code className={styles.code}>K7QM4PXR</code> has responded
-          </p>
-          <p className={`${styles.small} mb-1`}>
-            <b>Guests</b>
-          </p>
-          <p className="mb-2">✅ Jordan ✅ Mei ❌ Kai</p>
-          <pre className={styles.slackQuote}>
-            Can’t wait to celebrate with you!
-          </pre>
-        </div>
-      </Frame>
-    </div>
-  );
-}
-
 export default async function AboutPage() {
   // Read settings per request so a changed demo code shows without a redeploy.
   await connection();
@@ -351,37 +344,37 @@ export default async function AboutPage() {
   const qr = await QRCode.toDataURL(`${baseUrl}${demoPath ?? "/"}`, {
     margin: 0,
     width: 216,
-    color: { dark: "#1f1a17", light: "#ffffff" },
+    color: { dark: "#2a2521", light: "#ffffff" },
   });
 
   return (
-    <main className={`${styles.page} ${display.variable} ${mono.variable}`}>
+    <div className={styles.page}>
       <section className={styles.hero}>
         <div className={styles.wrap}>
           <div className={styles.heroText}>
-            <p className={styles.eyebrow}>Open source · Archived</p>
-            <h1 className={styles.serif}>
+            <p className="eyebrow">Open source · Archived</p>
+            <h1 className={styles.display}>
               From the printed card to the door, one code per household.
             </h1>
             <p className={styles.lede}>
-              WeDo is a small wedding app for invitations, RSVPs, seating and
-              check-in. Each household gets a code on its printed card. Guests
-              scan it to answer for everyone on the invite, the couple seats
-              them at tables, and the same code checks them in on the day.
+              WeDo is a wedding website with invitations, RSVPs, seating and
+              check-in built in. Each household gets a code on its printed card.
+              Guests scan it to reply for everyone on the invite, the couple
+              seats them at tables, and the same code checks them in on the day.
             </p>
             <div className={styles.ctas}>
               {demoPath ? (
-                <Link href={demoPath} className={styles.btn}>
+                <Link href={demoPath} className="btn btn-primary btn-lg">
                   Try the guest RSVP
                 </Link>
               ) : (
-                <Link href="/" className={styles.btn}>
-                  See the guest page
+                <Link href="/" className="btn btn-primary btn-lg">
+                  See the guest site
                 </Link>
               )}
               <a
                 href={SOURCE_URL}
-                className={styles.btnGhost}
+                className="btn btn-secondary btn-lg"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -395,20 +388,20 @@ export default async function AboutPage() {
             )}
           </div>
           <figure className={styles.heroFigure}>
-            <RsvpMock />
+            <InviteMock />
             <figcaption className={styles.caption}>
-              The invite page — everyone on the invite, one response.
+              An invite page — the cover, then a letter addressed to the
+              household.
             </figcaption>
           </figure>
         </div>
       </section>
 
       <Feature
-        id="invites"
         eyebrow="Invites"
         title="A code on every card, and a card for every household."
         body={[
-          "Each invite groups the guests of one household under a random code. The admin page renders a printable card for it: the template background, a formal addressee line, the code, the reply-by date and a QR code that opens that invite’s RSVP page.",
+          "Each invite groups the guests of one household under a random code. The admin page renders a printable card for it: the template background, a formal addressee line, the code, the reply-by date and a QR code that opens that invite’s page.",
           "The same page suggests the message to send alongside it, so invites can go out by post, by chat app, or both.",
         ]}
         bullets={[
@@ -425,42 +418,39 @@ export default async function AboutPage() {
       />
 
       <Feature
-        id="rsvp"
         eyebrow="RSVP"
-        title="Guests answer for everyone on their invite."
+        title="Guests reply for everyone on their invite."
         body={[
-          "Opening the link or entering the code shows the invite’s guests and nothing else: no phone numbers, emails or tables. One person ticks who is coming, leaves a note for the couple and submits.",
-          "Responses can be changed until the reply-by date, which closes at the end of that day in the event’s time zone rather than the guest’s.",
+          "The invite page greets the household by name, then lists its guests with Accepts and Declines beside each. One person answers for all of them, leaves a note for the couple and sends it.",
+          "Replies can be changed until the reply-by date, which closes at the end of that day in the event’s time zone rather than the guest’s. Guests see only their own invite: no phone numbers, emails or tables.",
         ]}
         bullets={[
-          "Every submission is checked on the server: captcha, deadline, and that each guest belongs to that invite.",
-          "New responses can post to a Slack channel.",
-          "The agreement, change policy and FAQ are written in Markdown by the couple.",
+          "Every reply is checked on the server: captcha, deadline, and that each guest belongs to that invite.",
+          "New replies can post to a Slack channel.",
+          "The agreement, change policy and Q&A are written in Markdown by the couple.",
         ]}
-        figure={<ResponseMock />}
-        caption="What the guest sees after submitting, and what the couple sees in Slack."
+        figure={<RsvpMock />}
+        caption="The reply form for a three-person invite, and the couple’s Slack notification."
         reverse
       />
 
       <Feature
-        id="seating"
-        eyebrow="Seating"
-        title="Tables filled from the guest list, not a separate spreadsheet."
+        eyebrow="Guests & seating"
+        title="Replies, tables and the venue’s seating chart in one place."
         body={[
-          "Guests are assigned to tables from the guest list, which shows each table’s count of assigned and attending guests next to its capacity. VIP tables are marked, and rows shade by table so a printed list is easy to read.",
+          "The dashboard counts who is attending, who has declined and who has yet to reply, and how many have checked in. Guests are assigned to tables from the guest list, which shows each table’s assigned and attending guests against its capacity.",
           "When the plan is settled, it exports as a seating-chart CSV for the venue.",
         ]}
         bullets={[
-          "Children and corsage recipients are flagged per guest.",
-          "Counts update as RSVPs come in.",
-          "The export lists each table’s guests in name order.",
+          "VIP tables are marked; children and corsage recipients are flagged per guest.",
+          "Counts update as replies come in.",
+          "The wedding date and venue are edited in settings, with a countdown on the dashboard.",
         ]}
-        figure={<SeatingMock />}
-        caption="Guest management — tables against capacity, then every guest."
+        figure={<GuestsMock />}
+        caption="The dashboard’s reply counts, then tables against capacity."
       />
 
       <Feature
-        id="checkin"
         eyebrow="Check-in"
         title="At the door, by code, name or QR scan."
         body={[
@@ -478,24 +468,39 @@ export default async function AboutPage() {
       />
 
       <Feature
-        id="settings"
-        eyebrow="Settings"
-        title="Nothing about a wedding lives in the code."
+        eyebrow="Look & content"
+        title="Four looks, and nothing about the wedding in the code."
         body={[
-          "Names, copy, the FAQ, the time zone and every image are edited in the admin settings page and stored in the database and Vercel Blob. A fresh deployment shows neutral placeholders until they are filled in.",
+          "The site comes in four presets — classic, modern, garden and blush — each with its own type and palette, and an optional accent colour. Names, copy, the Q&A and every photo are edited in settings and stored in the database and Vercel Blob.",
           "That keeps the repository free of anyone’s photos, contact details or payment codes, so it can be forked as it is.",
         ]}
         bullets={[
-          "Text, Markdown, single-image and multi-image settings.",
+          "Photos are resized in the browser before upload, so camera images fit.",
           "Uploaded images are type- and size-checked on the server.",
           "A test fails the build if photos or phone numbers are committed.",
         ]}
-        figure={<SettingsMock />}
-        caption="Settings — each value with its kind."
+        figure={<ThemesMock />}
+        caption="The four presets. This page follows whichever one the site uses."
       />
 
       <Feature
-        id="security"
+        eyebrow="After the day"
+        title="The site turns into a thank-you page."
+        body={[
+          "Once the wedding date has passed, the home page becomes a note from the couple with a photo gallery. Tapping a photo opens a full-screen viewer with swipe and arrow-key navigation, and a link can point to the full album.",
+          "The switch can be turned off, in which case the original site stays up and links to the thank-you page instead.",
+        ]}
+        bullets={[
+          "The note is written in Markdown in settings.",
+          "Gallery photos upload like cover photos and are served at sized resolutions.",
+          "Section links drop out of the navigation on the thank-you page.",
+        ]}
+        figure={<ThankYouMock />}
+        caption="The thank-you page — the couple’s note, then the gallery."
+        reverse
+      />
+
+      <Feature
         eyebrow="Protection"
         title="An invite code opens one invite, and nothing more."
         body={[
@@ -508,27 +513,27 @@ export default async function AboutPage() {
           "Check-in also verifies that each guest belongs to the scanned invite.",
         ]}
         figure={<SecurityMock />}
-        caption="The checks behind every RSVP, in outline."
-        reverse
+        caption="The checks behind every reply, in outline."
       />
 
       <section className={styles.closing}>
         <div className={styles.wrap}>
-          <p className={styles.eyebrow}>Archived</p>
-          <h2 className={styles.serif}>
+          <p className="eyebrow">Archived</p>
+          <h2 className={styles.display}>
             Built for one wedding, kept for anyone who wants it.
           </h2>
           <p>
             WeDo was written in 2022 for its author’s wedding in Singapore,
             where family ran the check-in desk with it on the day. In 2026 it
-            was rebuilt on Next.js 16, React 19 and Prisma 7 and made safe to
-            fork. It is not a hosted service: there is no sign-up, and nothing
-            is sold. To use it, fork the repository and deploy your own copy.
+            was rebuilt on Next.js 16, React 19 and Prisma 7, redesigned, and
+            made safe to fork. It is not a hosted service: there is no sign-up,
+            and nothing is sold. To use it, fork the repository and deploy your
+            own copy.
           </p>
           <div className={styles.ctas}>
             <a
               href={SOURCE_URL}
-              className={styles.btn}
+              className="btn btn-primary btn-lg"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -546,6 +551,6 @@ export default async function AboutPage() {
           </a>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }

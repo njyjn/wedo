@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef, useState, useTransition } from "react";
 import { Modal } from "react-bootstrap";
 import { submitRsvp } from "@/app/rsvp/actions";
+import { submissionFromChoices } from "@/lib/rsvp";
 
 type FormGuest = { id: number; name: string; isAttending: boolean | null };
 
@@ -22,8 +23,8 @@ export default function RsvpForm({
   guests: FormGuest[];
   recipientNotes: string;
 }) {
-  const [selected, setSelected] = useState<Set<number>>(
-    () => new Set(guests.filter((g) => g.isAttending).map((g) => g.id)),
+  const [choices, setChoices] = useState<Map<number, boolean | null>>(
+    () => new Map(guests.map((g) => [g.id, g.isAttending])),
   );
   const [notes, setNotes] = useState(recipientNotes);
   const [isPending, startTransition] = useTransition();
@@ -33,22 +34,18 @@ export default function RsvpForm({
   const captchaRef = useRef<HCaptcha>(null);
   const siteKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ?? "";
 
-  const toggle = (id: number) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const choose = (id: number, attending: boolean) =>
+    setChoices((prev) => new Map(prev).set(id, attending));
 
-  const respond = (attending: boolean) => {
-    if (attending && selected.size === 0) {
-      setResult({
-        error: true,
-        text: 'Please indicate which guests are attending. If not, select "Unable to Attend".',
-      });
+  const respond = () => {
+    const submission = submissionFromChoices(
+      guests.map((g) => ({ id: g.id, attending: choices.get(g.id) ?? null })),
+    );
+    if (!submission.ok) {
+      setResult({ error: true, text: submission.error });
       return;
     }
+    const { attending, guestIds } = submission;
     startTransition(async () => {
       let captcha: string;
       try {
@@ -66,11 +63,10 @@ export default function RsvpForm({
           code,
           captcha,
           attending,
-          guestIds: attending ? [...selected] : [],
+          guestIds,
           recipientNotes: notes,
         });
         if (res.ok) {
-          if (!attending) setSelected(new Set());
           setResult({
             error: false,
             text: attending
@@ -121,39 +117,57 @@ export default function RsvpForm({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          respond(true);
+          respond();
         }}
       >
         <HCaptcha size="invisible" ref={captchaRef} sitekey={siteKey} />
-        <fieldset className="mb-3">
-          <legend className="form-label fs-6">
-            Attending ({selected.size})
-          </legend>
-          {guests.map((g) => (
-            <div className="form-check" key={g.id}>
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id={`guest-${g.id}`}
-                checked={selected.has(g.id)}
-                onChange={() => toggle(g.id)}
-              />
-              <label className="form-check-label" htmlFor={`guest-${g.id}`}>
-                {g.name}
-              </label>
-            </div>
-          ))}
-        </fieldset>
+        <ul className="guest-list">
+          {guests.map((g) => {
+            const choice = choices.get(g.id) ?? null;
+            return (
+              <li className="guest-row" key={g.id}>
+                <span className="guest-name">{g.name}</span>
+                <div
+                  className="choice-group"
+                  role="radiogroup"
+                  aria-label={`Response for ${g.name}`}
+                >
+                  {[
+                    { value: true, label: "Accepts" },
+                    { value: false, label: "Declines" },
+                  ].map((o) => {
+                    const id = `guest-${g.id}-${o.value ? "yes" : "no"}`;
+                    return (
+                      <span key={id}>
+                        <input
+                          type="radio"
+                          className="btn-check"
+                          name={`guest-${g.id}`}
+                          id={id}
+                          checked={choice === o.value}
+                          onChange={() => choose(g.id, o.value)}
+                        />
+                        <label className="btn btn-choice" htmlFor={id}>
+                          {o.label}
+                        </label>
+                      </span>
+                    );
+                  })}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
         <div className="mb-3">
           <label className="form-label" htmlFor="rsvp-notes">
-            Message to the couple
+            A note for the couple <span className="text-muted">(optional)</span>
           </label>
           <textarea
             id="rsvp-notes"
             className="form-control"
             rows={3}
             maxLength={2000}
-            placeholder="Enter message (optional)"
+            placeholder="Dietary needs, well wishes, anything else"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -175,21 +189,13 @@ export default function RsvpForm({
           </div>
         )}
         <div className="form-text mb-3">{changePolicy}</div>
-        <div className="d-grid gap-2">
+        <div className="d-grid">
           <button
-            className="btn btn-success"
+            className="btn btn-primary btn-lg"
             type="submit"
             disabled={isPending}
           >
-            {isPending ? "Please wait..." : "Attending"}
-          </button>
-          <button
-            className="btn btn-danger"
-            type="button"
-            onClick={() => respond(false)}
-            hidden={isPending}
-          >
-            Unable to Attend
+            {isPending ? "Sending..." : "Send RSVP"}
           </button>
         </div>
       </form>
