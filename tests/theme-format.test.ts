@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calendarDaysUntil, countdownLabel } from "@/lib/format";
+import {
+  calendarDaysUntil,
+  countdownLabel,
+  fromDateTimeLocalInput,
+  toDateTimeLocalInput,
+} from "@/lib/format";
 import { submissionFromChoices } from "@/lib/rsvp";
 import { DEFAULT_THEME, resolveAccent, resolveTheme } from "@/lib/theme";
 
@@ -87,5 +92,39 @@ describe("submissionFromChoices", () => {
         { id: 2, attending: false },
       ]),
     ).toEqual({ ok: true, attending: false, guestIds: [] });
+  });
+});
+
+describe("datetime-local inputs", () => {
+  it("round-trips wall-clock time in the event time zone", () => {
+    const d = fromDateTimeLocalInput("2027-08-20T18:30", "Asia/Singapore");
+    expect(d?.toISOString()).toBe("2027-08-20T10:30:00.000Z");
+    expect(toDateTimeLocalInput(d!, "Asia/Singapore")).toBe("2027-08-20T18:30");
+  });
+
+  it("handles daylight saving time", () => {
+    expect(
+      fromDateTimeLocalInput(
+        "2027-07-01T12:00",
+        "Europe/London",
+      )?.toISOString(),
+    ).toBe("2027-07-01T11:00:00.000Z");
+    expect(
+      fromDateTimeLocalInput(
+        "2027-01-01T12:00",
+        "Europe/London",
+      )?.toISOString(),
+    ).toBe("2027-01-01T12:00:00.000Z");
+  });
+
+  it("rejects malformed or impossible values", () => {
+    for (const v of [
+      "",
+      "2027-08-20",
+      "2027-02-30T10:00",
+      "2027-08-20T25:00",
+    ]) {
+      expect(fromDateTimeLocalInput(v, "UTC")).toBeNull();
+    }
   });
 });

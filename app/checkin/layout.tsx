@@ -4,5 +4,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="container-fluid py-4">{children}</div>;
+  return <div className="container-fluid py-4 admin-shell">{children}</div>;
 }

@@ -44,6 +44,8 @@ Without the Auth0 variables the guest-facing pages still work and the admin page
 Nothing about a specific wedding lives in this repository. A fresh deployment shows neutral placeholder copy on a
 plain cover; you fill in your own in **God → Settings** (`/god/settings`):
 
+- **Event:** the wedding date and time (in the event time zone), venue and event name. Saving creates the event if
+  none exists yet.
 - **Look:** a theme preset (`classic`, `modern`, `garden` or `blush`, each with its own fonts and palette), an
   optional accent colour, and the tagline above your names on the cover.
 - **Text:** couple names, invitation message, RSVP notes and agreement, change policy, FAQ (Markdown, including

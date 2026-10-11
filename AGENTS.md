@@ -39,7 +39,7 @@ deployment's database before building**.
 | Path                                                              | What                                                                                                           |
 | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `app/page.tsx`, `app/rsvp/[code]/page.tsx`, `app/rsvp/actions.ts` | Public: home/lookup, invite page, RSVP Server Actions                                                          |
-| `app/god/**`, `app/god/actions.ts`                                | Admin pages and Server Actions (guests, invites, settings, image uploads)                                      |
+| `app/god/**`, `app/god/actions.ts`                                | Admin pages and Server Actions (guests, invites, event, settings, image uploads)                               |
 | `app/checkin/**`                                                  | Admin check-in page and actions                                                                                |
 | `app/god/guests/export/route.ts`                                  | Seating-chart CSV route handler                                                                                |
 | `proxy.ts`                                                        | Auth0 middleware (mounts `/auth/*`), redirects logged-out users away from `/god`, `/checkin`                   |
@@ -96,7 +96,8 @@ be changed), `names.ts` (formal addressee line), `invite-code.ts`, `csv.ts`, `ad
 ## Dates and time zones
 
 Event times are stored as instants and formatted in the `timeZone` setting (default `Asia/Singapore`) via
-`lib/format.ts`. Respond-by dates come from `<input type="date">`, are stored as midnight UTC and mean "by the end of
+`lib/format.ts`. The event date is edited in `/god/settings` via `<input type="datetime-local">`, read as wall-clock time in
+the event time zone (`fromDateTimeLocalInput` / `toDateTimeLocalInput`). Respond-by dates come from `<input type="date">`, are stored as midnight UTC and mean "by the end of
 that calendar day in the event time zone" (`rsvpClosesAt`). Don't format date-only values in the event time zone;
 use `formatCalendarDate`.
 
