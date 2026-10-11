@@ -60,3 +60,17 @@ export function planRsvp(
     notAttendingIds: inviteGuestIds.filter((id) => !selected.has(id)),
   };
 }
+
+/**
+ * Turn per-guest accept/decline choices from the RSVP form into a submission. Every guest needs an
+ * answer; declining for everyone is a "not attending" response for the invite.
+ */
+export function submissionFromChoices(
+  choices: { id: number; attending: boolean | null }[],
+): ({ ok: true } & RsvpSubmission) | { ok: false; error: string } {
+  if (choices.length === 0 || choices.some((c) => c.attending === null)) {
+    return { ok: false, error: "Please accept or decline for each guest." };
+  }
+  const guestIds = choices.filter((c) => c.attending).map((c) => c.id);
+  return { ok: true, attending: guestIds.length > 0, guestIds };
+}

@@ -1,20 +1,32 @@
-export default function Footer({ text, url }: { text: string; url?: string }) {
-  if (!text) return null;
+export default function Footer({
+  coupleName,
+  date,
+  text,
+  url,
+}: {
+  coupleName: string;
+  date?: string;
+  text: string;
+  url?: string;
+}) {
   const safeUrl = url && /^https:\/\//.test(url) ? url : null;
   return (
-    <nav id="footer">
-      {safeUrl ? (
-        <a
-          href={safeUrl}
-          className="small text-muted"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {text}
-        </a>
-      ) : (
-        <span className="small text-muted">{text}</span>
-      )}
-    </nav>
+    <footer className="site-footer">
+      <p className="footer-names signature">{coupleName}</p>
+      {date && <p className="footer-date">{date}</p>}
+      {text &&
+        (safeUrl ? (
+          <a
+            href={safeUrl}
+            className="footer-note"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {text}
+          </a>
+        ) : (
+          <span className="footer-note">{text}</span>
+        ))}
+    </footer>
   );
 }

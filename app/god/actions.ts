@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { isBlobConfigured } from "@/lib/blob";
+import { fromDateTimeLocalInput } from "@/lib/format";
 import prisma from "@/lib/prisma";
 import {
   generateInviteCode,
@@ -211,13 +212,79 @@ export async function createInvite(
   return { ok: true, message: `Created invite ${inviteCode}.` };
 }
 
+const eventSchema = z.object({
+  name: optionalText(200),
+  startTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, {
+    message: "Enter the date and time.",
+  }),
+  location: z.string().trim().min(1, "Enter the venue.").max(200),
+  sublocation: optionalText(200),
+});
+
+/** Edit the default event (date, venue), creating it if it doesn't exist yet. */
+export async function saveEvent(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin("/god/settings");
+  const parsed = eventSchema.safeParse({
+    name: str(formData, "name"),
+    startTime: str(formData, "startTime"),
+    location: str(formData, "location"),
+    sublocation: str(formData, "sublocation"),
+  });
+  if (!parsed.success)
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Invalid event.",
+    };
+  const settings = await getSettings();
+  const startTime = fromDateTimeLocalInput(
+    parsed.data.startTime,
+    settings.timeZone,
+  );
+  if (!startTime) return { ok: false, message: "Enter a valid date and time." };
+  const data = { ...parsed.data, startTime };
+
+  try {
+    const eventId = Number.parseInt(settings.defaultEventId, 10);
+    const existing = Number.isSafeInteger(eventId)
+      ? await prisma.event.findUnique({
+          where: { id: eventId },
+          select: { id: true },
+        })
+      : null;
+    if (existing) {
+      await prisma.event.update({ where: { id: existing.id }, data });
+    } else {
+      await prisma.$transaction(async (tx) => {
+        const created = await tx.event.create({ data, select: { id: true } });
+        await setSetting(tx, "defaultEventId", String(created.id));
+      });
+    }
+  } catch (e) {
+    return fail(e, "Could not save the event.");
+  }
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Saved." };
+}
+
 export async function saveSettings(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   await requireAdmin("/god/settings");
   const values = SETTING_KEYS.filter((k) => formData.has(k)).map(
-    (k) => [k, str(formData, k).trim()] as const,
+    (k) =>
+      [
+        k,
+        // A switch posts a hidden "0" plus "1" when checked.
+        SETTINGS[k].kind === "toggle"
+          ? formData.getAll(k).includes("1")
+            ? "1"
+            : "0"
+          : str(formData, k).trim(),
+      ] as const,
   );
 
   for (const [key, value] of values) {

@@ -13,22 +13,23 @@ export default function RsvpLookupForm({
     {},
   );
   return (
-    <form action={formAction}>
-      <div className="mb-3">
-        <input
-          name="code"
-          className="form-control text-center text-uppercase"
-          type="text"
-          placeholder="Enter invite code"
-          aria-label="Invite code"
-          autoComplete="off"
-          autoFocus
-          required
-          defaultValue={state.code ?? prefilledCode}
-        />
-      </div>
-      {state.error && <p className="text-danger">{state.error}</p>}
-      <button className="btn btn-primary" type="submit" disabled={isPending}>
+    <form action={formAction} className="lookup-form">
+      <input
+        name="code"
+        className="form-control form-control-lg text-center text-uppercase"
+        type="text"
+        placeholder="Invite code"
+        aria-label="Invite code"
+        autoComplete="off"
+        autoFocus={Boolean(prefilledCode)}
+        required
+        defaultValue={state.code ?? prefilledCode}
+      />
+      <button
+        className="btn btn-primary btn-lg"
+        type="submit"
+        disabled={isPending}
+      >
         {isPending ? (
           <span
             className="spinner-border spinner-border-sm"
@@ -36,9 +37,14 @@ export default function RsvpLookupForm({
             aria-label="Loading"
           />
         ) : (
-          "RSVP"
+          "Find my invite"
         )}
       </button>
+      {state.error && (
+        <p className="text-danger lookup-error" role="alert">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }

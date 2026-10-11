@@ -102,3 +102,60 @@ export function endOfCalendarDay(d: Date, timeZone: string): Date {
   );
   return new Date(utcEnd - timeZoneOffsetMs(new Date(utcEnd), timeZone));
 }
+
+function calendarDayNumber(d: Date, timeZone: string): number {
+  // en-CA formats as YYYY-MM-DD.
+  const [y, m, day] = new Intl.DateTimeFormat("en-CA", { timeZone })
+    .format(d)
+    .split("-")
+    .map(Number);
+  return Date.UTC(y, m - 1, day) / 86_400_000;
+}
+
+/** Whole calendar days from `now` until `target` in `timeZone` (0 = same day, negative = past). */
+export function calendarDaysUntil(
+  target: Date,
+  timeZone: string,
+  now = new Date(),
+): number {
+  return calendarDayNumber(target, timeZone) - calendarDayNumber(now, timeZone);
+}
+
+/** "128 days to go", "Tomorrow", "Today", or null once the day has passed. */
+export function countdownLabel(days: number): string | null {
+  if (days < 0) return null;
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return `${days} days to go`;
+}
+
+/** "6:30 pm" */
+export const formatTime = (d: Date, tz: string) =>
+  fmt(d, tz, { hour: "numeric", minute: "2-digit" });
+
+/** An instant as a `<input type="datetime-local">` value ("2027-08-20T18:30") in `timeZone`. */
+export function toDateTimeLocalInput(d: Date, timeZone: string): string {
+  return new Date(d.getTime() + timeZoneOffsetMs(d, timeZone))
+    .toISOString()
+    .slice(0, 16);
+}
+
+/**
+ * Parse a `<input type="datetime-local">` value as wall-clock time in `timeZone`. Returns null for
+ * malformed input.
+ */
+export function fromDateTimeLocalInput(
+  value: string,
+  timeZone: string,
+): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  if (!m) return null;
+  const [y, mo, d, h, mi] = m.slice(1).map(Number);
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  if (new Date(wall).toISOString().slice(0, 16) !== value) return null;
+  // The offset depends on the instant, so correct once more in case the first guess crossed a DST
+  // change.
+  let instant = wall - timeZoneOffsetMs(new Date(wall), timeZone);
+  instant = wall - timeZoneOffsetMs(new Date(instant), timeZone);
+  return new Date(instant);
+}
